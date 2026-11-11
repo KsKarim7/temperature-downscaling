@@ -33,6 +33,10 @@ def open_store(path):
     return ds.rio.set_spatial_dims(x_dim="lon", y_dim="lat")
 
 
+def write_store(ds, path):
+    ds.to_zarr(path, mode="w", consolidated=True, zarr_format=2)
+
+
 def target_transform(lat, lon, res):
     west = float(np.min(lon)) - res / 2
     north = float(np.max(lat)) + res / 2
@@ -179,7 +183,7 @@ def build(region, cfg):
     out = out.rio.set_spatial_dims(x_dim="lon", y_dim="lat").rio.write_crs("EPSG:4326")
     out = out.chunk({"time": 24 * 31})
     path = proc / f"{region}.zarr"
-    out.to_zarr(path, mode="w", consolidated=True, zarr_format=2)
+    write_store(out, path)
     print(f"{region} written {path.name} {shape[0]}x{shape[1]} {t_land.sizes['time']} hours")
 
 
