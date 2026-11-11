@@ -3,7 +3,7 @@ pandas<3
 xarray
 netCDF4
 h5netcdf
-zarr<3
+zarr>=3
 dask
 rioxarray
 rasterio
