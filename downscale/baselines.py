@@ -73,10 +73,27 @@ def draw_rows(region, split, n_max, seed, names):
     return x[good], y[good]
 
 
-def pool_rows(regions, split, n_max, seed, names):
-    xs, ys = [], []
-    per = max(1, n_max // max(1, len(regions)))
+def shares(avail, n_max):
+    total = sum(avail)
+    if total == 0:
+        return [0] * len(avail)
+    return [int(round(n_max * a / total)) for a in avail]
+
+
+def pair_counts(regions, split):
+    out = []
     for region in regions:
+        tmask, cmask = split_masks(region)[split]
+        out.append(int(tmask.sum()) * int(cmask.sum()))
+    return out
+
+
+def pool_rows(regions, split, n_max, seed, names):
+    avail = pair_counts(regions, split)
+    xs, ys = [], []
+    for region, per in zip(regions, shares(avail, n_max)):
+        if per == 0:
+            continue
         x, y = draw_rows(region, split, per, seed, names)
         if y.size:
             xs.append(x)
