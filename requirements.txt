@@ -1,5 +1,5 @@
 numpy
-pandas
+pandas<3
 xarray
 netCDF4
 h5netcdf
