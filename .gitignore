@@ -1,1 +1,10 @@
-.cdsapirc
+data/
+outputs/
+checkpoints/
+__pycache__/
+*.pyc
+.venv/
+.vscode/
+.ipynb_checkpoints/
+.env
+*.egg-info/

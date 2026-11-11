@@ -1,0 +1,14 @@
+regions:
+  uae:        {bbox: [26.5, 51.0, 22.5, 56.5], utc_offset: 4}
+  bangladesh: {bbox: [26.7, 88.0, 20.6, 92.7], utc_offset: 6}
+years: {train: 2023, test: 2024}
+fine_res: 0.1
+coarse_res: 0.25
+coarse_pad: 0.5
+block_size: 5
+test_block_fraction: 0.25
+val_day_fraction: 0.1
+seed: 7
+geohash_precision: 4
+paths: {raw: data/raw, processed: data/processed, outputs: outputs, reports: reports}
+agent_model: claude-sonnet-5-5
