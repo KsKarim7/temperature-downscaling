@@ -135,6 +135,17 @@ def train_lgbm(regions, names, seed):
     return booster, val_bilinear, val_lgbm
 
 
+def val_scores(regions, booster, names, seed):
+    out = {}
+    for region, per in zip(regions, shares(pair_counts(regions, "val"), 300_000)):
+        if per == 0:
+            continue
+        x, y = draw_rows(region, "val", per, seed + 1, names)
+        pred = booster.predict(x, num_iteration=booster.best_iteration)
+        out[region] = (rmse(np.zeros_like(y), y), rmse(pred, y))
+    return out
+
+
 def predict_region(region, booster, names):
     cfg = load_config()
     ds = open_store(store_path(region))
@@ -216,22 +227,24 @@ def main():
     for region in regions:
         make_splits(region)
 
-    for region in regions:
-        m = split_masks(region)
-        for split in ("train", "val", "test_blocks", "all_land"):
-            tmask, cmask = m[split]
-            print(f"{region} {split}: {int(cmask.sum())} cells, {int(tmask.sum())} hours")
-
     booster, val_bilinear, val_lgbm = train_lgbm(regions, names, seed)
 
     for region in regions:
         predict_region(region, booster, names)
 
+    val = val_scores(regions, booster, names, seed)
     for region in regions:
-        for name in ("bilinear", "lgbm"):
-            s = score_region(region, name, "test_blocks")
-            if s is not None:
-                print(f"{region} test_blocks rmse {name} {s:.4f}")
+        m = split_masks(region)
+        print(f"--- {region} ---")
+        for split in ("train", "val", "test_blocks", "all_land"):
+            tmask, cmask = m[split]
+            print(f"{split:12s} {int(cmask.sum())} cells, {int(tmask.sum())} hours")
+        vb, vl = val[region]
+        print(f"val rmse          bilinear {vb:.4f} C   lgbm {vl:.4f} C")
+        sb = score_region(region, "bilinear", "test_blocks")
+        sl = score_region(region, "lgbm", "test_blocks")
+        if sb is not None and sl is not None:
+            print(f"test_blocks rmse  bilinear {sb:.4f} C   lgbm {sl:.4f} C")
 
 
 if __name__ == "__main__":
