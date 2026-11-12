@@ -1,0 +1,8 @@
+name,lr,loss,drop,best_val_rmse_c,best_epoch,minutes
+sweep_lr0.001_l1,0.001,l1,,0.7263,8,11.5
+sweep_lr0.001_mse,0.001,mse,,0.7392,8,8.9
+sweep_lr0.0003_l1,0.0003,l1,,0.7285,8,18.3
+sweep_lr0.0003_mse,0.0003,mse,,0.7267,8,14.1
+sweep_drop_position,0.001,l1,position,0.7212,8,17.6
+sweep_drop_landcover,0.001,l1,landcover,0.7235,7,11.9
+sweep_drop_terrain,0.001,l1,terrain,0.7363,8,11.6

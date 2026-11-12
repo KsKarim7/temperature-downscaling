@@ -10,3 +10,4 @@ __pycache__/
 *.egg-info/
 download.log
 sweep.log
+kaggle_upload.zip
