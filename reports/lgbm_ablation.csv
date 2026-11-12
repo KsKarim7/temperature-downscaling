@@ -1,0 +1,9 @@
+drop,region,val_rmse,test_blocks_rmse,best_iteration
+none,uae,0.6588,0.834,1663
+none,bangladesh,0.6515,0.9532,1663
+position,uae,0.6901,0.8318,1050
+position,bangladesh,0.6867,0.9511,1050
+landcover,uae,0.6576,0.8277,1280
+landcover,bangladesh,0.6483,0.9437,1280
+terrain,uae,0.6787,0.8361,1091
+terrain,bangladesh,0.6434,0.9731,1091

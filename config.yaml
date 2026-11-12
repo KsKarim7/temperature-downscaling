@@ -7,6 +7,7 @@ coarse_res: 0.25
 coarse_pad: 0.5
 block_size: 5
 test_block_fraction: 0.25
+val_block_fraction: 0.15
 val_day_fraction: 0.1
 seed: 7
 geohash_precision: 4

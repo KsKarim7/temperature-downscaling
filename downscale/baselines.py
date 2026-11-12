@@ -21,6 +21,8 @@ PARAMS = {
     "verbose": -1,
 }
 
+CONFIGS = [("none", ()), ("position", ("position",)), ("landcover", ("landcover",)), ("terrain", ("terrain",))]
+
 
 def store_path(region):
     cfg = load_config()
@@ -33,6 +35,33 @@ def has_store(region):
 
 def rmse(a, b):
     return float(np.sqrt(np.nanmean((a - b) ** 2)))
+
+
+def shares(avail, n_max):
+    total = sum(avail)
+    if total == 0:
+        return [0] * len(avail)
+    return [int(round(n_max * a / total)) for a in avail]
+
+
+def pair_counts(regions, split):
+    out = []
+    for region in regions:
+        tmask, cmask = split_masks(region)[split]
+        out.append(int(tmask.sum()) * int(cmask.sum()))
+    return out
+
+
+def build_x(names, tc, tf, st, ii, jj, nt):
+    x = np.empty((nt * ii.size, len(names)), "float32")
+    for k, c in enumerate(names):
+        if c == "t2m_coarse":
+            x[:, k] = tc.ravel()
+        elif c in tf:
+            x[:, k] = np.repeat(tf[c], ii.size)
+        else:
+            x[:, k] = np.tile(st[c][ii, jj], nt)
+    return x
 
 
 def draw_rows(region, split, n_max, seed, names):
@@ -73,21 +102,6 @@ def draw_rows(region, split, n_max, seed, names):
     return x[good], y[good]
 
 
-def shares(avail, n_max):
-    total = sum(avail)
-    if total == 0:
-        return [0] * len(avail)
-    return [int(round(n_max * a / total)) for a in avail]
-
-
-def pair_counts(regions, split):
-    out = []
-    for region in regions:
-        tmask, cmask = split_masks(region)[split]
-        out.append(int(tmask.sum()) * int(cmask.sum()))
-    return out
-
-
 def pool_rows(regions, split, n_max, seed, names):
     avail = pair_counts(regions, split)
     xs, ys = [], []
@@ -106,44 +120,49 @@ def pool_rows(regions, split, n_max, seed, names):
 def train_lgbm(regions, names, seed):
     xtr, ytr = pool_rows(regions, "train", 3_000_000, seed, names)
     xva, yva = pool_rows(regions, "val", 300_000, seed + 1, names)
-    print(f"lgbm train rows {ytr.size} val rows {yva.size}")
+    print(f"train rows {ytr.size} val rows {yva.size} features {len(names)}")
     params = dict(PARAMS)
     params["seed"] = seed
     params["bagging_seed"] = seed
     params["feature_fraction_seed"] = seed
     dtr = lgb.Dataset(xtr, ytr, feature_name=names)
     dva = lgb.Dataset(xva, yva, feature_name=names, reference=dtr)
-    booster = lgb.train(
+    return lgb.train(
         params,
         dtr,
         num_boost_round=3000,
         valid_sets=[dva],
-        callbacks=[lgb.early_stopping(100, verbose=False), lgb.log_evaluation(200)],
+        callbacks=[lgb.early_stopping(100, verbose=False), lgb.log_evaluation(400)],
     )
+
+
+def score_cells(region, booster, names, split):
     cfg = load_config()
-    out = ROOT / cfg["paths"]["outputs"]
-    out.mkdir(parents=True, exist_ok=True)
-    booster.save_model(str(out / "lgbm.txt"))
-    gain = booster.feature_importance("gain")
-    imp = pd.DataFrame({"feature": names, "gain": gain}).sort_values("gain", ascending=False)
-    rep = ROOT / cfg["paths"]["reports"]
-    rep.mkdir(parents=True, exist_ok=True)
-    imp.to_csv(rep / "lgbm_importance.csv", index=False)
-    val_lgbm = rmse(booster.predict(xva, num_iteration=booster.best_iteration), yva)
-    val_bilinear = rmse(np.zeros_like(yva), yva)
-    print(f"val rmse bilinear {val_bilinear:.4f} lgbm {val_lgbm:.4f}")
-    return booster, val_bilinear, val_lgbm
-
-
-def val_scores(regions, booster, names, seed):
-    out = {}
-    for region, per in zip(regions, shares(pair_counts(regions, "val"), 300_000)):
-        if per == 0:
-            continue
-        x, y = draw_rows(region, "val", per, seed + 1, names)
-        pred = booster.predict(x, num_iteration=booster.best_iteration)
-        out[region] = (rmse(np.zeros_like(y), y), rmse(pred, y))
-    return out
+    ds = open_store(store_path(region))
+    tmask, cmask = split_masks(region)[split]
+    ti = np.where(tmask)[0]
+    ii, jj = np.where(cmask)
+    if ti.size == 0 or ii.size == 0:
+        ds.close()
+        return 0.0, 0
+    st = static_feats(ds, names) if booster is not None else {}
+    sse = 0.0
+    n = 0
+    for s in np.array_split(ti, max(1, ti.size // 744)):
+        tc = ds.t2m_coarse.isel(time=s).values[:, ii, jj]
+        tl = ds.t2m_land.isel(time=s).values[:, ii, jj]
+        if booster is None:
+            d = tc - tl
+        else:
+            tf = time_feats(ds.time.values[s], cfg["regions"][region]["utc_offset"])
+            x = build_x(names, tc, tf, st, ii, jj, s.size)
+            p = booster.predict(x, num_iteration=booster.best_iteration).astype("float32")
+            d = p.reshape(tc.shape) + tc - tl
+        good = np.isfinite(d)
+        sse += float(np.sum(d[good] ** 2))
+        n += int(good.sum())
+    ds.close()
+    return sse, n
 
 
 def predict_region(region, booster, names):
@@ -168,14 +187,7 @@ def predict_region(region, booster, names):
         tc = ds.t2m_coarse.isel(time=sel).values
         tf = time_feats(ds.time.values[sel], cfg["regions"][region]["utc_offset"])
         nt = sel.size
-        x = np.empty((nt * ii.size, len(names)), "float32")
-        for k, c in enumerate(names):
-            if c == "t2m_coarse":
-                x[:, k] = tc[:, ii, jj].ravel()
-            elif c in tf:
-                x[:, k] = np.repeat(tf[c], ii.size)
-            else:
-                x[:, k] = np.tile(st[c][ii, jj], nt)
+        x = build_x(names, tc[:, ii, jj], tf, st, ii, jj, nt)
         resid = booster.predict(x, num_iteration=booster.best_iteration).astype("float32")
         a = np.full(tc.shape, np.nan, "float32")
         a[:, ii, jj] = resid.reshape(nt, ii.size) + tc[:, ii, jj]
@@ -191,26 +203,6 @@ def predict_region(region, booster, names):
         write_store(da.to_dataset().chunk({"time": 24 * 31}), out_dir / f"pred_{name}.zarr")
 
 
-def score_region(region, name, split):
-    cfg = load_config()
-    path = ROOT / cfg["paths"]["outputs"] / region / f"pred_{name}.zarr"
-    if not path.exists():
-        return None
-    ds = open_store(store_path(region))
-    pr = open_store(path)
-    tmask, cmask = split_masks(region)[split]
-    ti = np.where(tmask)[0]
-    want = pd.DatetimeIndex(ds.time.values[ti])
-    sel = np.where(np.isin(pd.DatetimeIndex(pr.time.values), want))[0]
-    truth = ds.t2m_land.isel(time=ti).values
-    pred = pr.pred.isel(time=sel).values
-    m = np.broadcast_to(cmask, truth.shape)
-    out = rmse(pred[m], truth[m])
-    ds.close()
-    pr.close()
-    return out
-
-
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--region", default="all", choices=["uae", "bangladesh", "all"])
@@ -221,30 +213,83 @@ def main():
     if not regions:
         print("no processed store found")
         return
-    names = channels()
     seed = cfg["seed"]
+    out = ROOT / cfg["paths"]["outputs"]
+    rep = ROOT / cfg["paths"]["reports"]
+    out.mkdir(parents=True, exist_ok=True)
+    rep.mkdir(parents=True, exist_ok=True)
 
     for region in regions:
         make_splits(region)
 
-    booster, val_bilinear, val_lgbm = train_lgbm(regions, names, seed)
+    counts = {}
+    for region in regions:
+        m = split_masks(region)
+        counts[region] = {k: (int(c.sum()), int(t.sum())) for k, (t, c) in m.items()}
+
+    base = {}
+    for region in regions:
+        vs, vn = score_cells(region, None, [], "val")
+        ts, tn = score_cells(region, None, [], "test_blocks")
+        base[region] = (np.sqrt(vs / vn), np.sqrt(ts / tn))
+
+    rows = []
+    fits = {}
+    pooled = {}
+    for tag, drop in CONFIGS:
+        names = channels(drop)
+        print(f"fitting drop={tag}")
+        booster = train_lgbm(regions, names, seed)
+        fits[tag] = (booster, names)
+        vsse = vn = 0.0
+        for region in regions:
+            vs, vc = score_cells(region, booster, names, "val")
+            ts, tc = score_cells(region, booster, names, "test_blocks")
+            vsse += vs
+            vn += vc
+            rows.append(
+                {
+                    "drop": tag,
+                    "region": region,
+                    "val_rmse": round(float(np.sqrt(vs / vc)), 4),
+                    "test_blocks_rmse": round(float(np.sqrt(ts / tc)), 4),
+                    "best_iteration": int(booster.best_iteration),
+                }
+            )
+        pooled[tag] = float(np.sqrt(vsse / vn))
+        print(f"drop={tag} pooled val rmse {pooled[tag]:.4f}")
+
+    pd.DataFrame(rows).to_csv(rep / "lgbm_ablation.csv", index=False)
+
+    best = min(pooled, key=pooled.get)
+    booster, names = fits[best]
+    booster.save_model(str(out / "lgbm.txt"))
+    (rep / "lgbm_choice.txt").write_text(
+        f"chosen drop={best} pooled val rmse {pooled[best]:.4f} C\n", encoding="utf-8"
+    )
+    imp = pd.DataFrame({"feature": names, "gain": booster.feature_importance("gain")})
+    imp = imp.sort_values("gain", ascending=False)
+    imp.to_csv(rep / "lgbm_importance.csv", index=False)
 
     for region in regions:
         predict_region(region, booster, names)
 
-    val = val_scores(regions, booster, names, seed)
     for region in regions:
-        m = split_masks(region)
         print(f"--- {region} ---")
         for split in ("train", "val", "test_blocks", "all_land"):
-            tmask, cmask = m[split]
-            print(f"{split:12s} {int(cmask.sum())} cells, {int(tmask.sum())} hours")
-        vb, vl = val[region]
-        print(f"val rmse          bilinear {vb:.4f} C   lgbm {vl:.4f} C")
-        sb = score_region(region, "bilinear", "test_blocks")
-        sl = score_region(region, "lgbm", "test_blocks")
-        if sb is not None and sl is not None:
-            print(f"test_blocks rmse  bilinear {sb:.4f} C   lgbm {sl:.4f} C")
+            c, t = counts[region][split]
+            print(f"{split:12s} {c} cells, {t} hours")
+        vb, tb = base[region]
+        print(f"bilinear val rmse {vb:.4f} C   test_blocks rmse {tb:.4f} C")
+
+    print("--- ablation ---")
+    print(pd.DataFrame(rows).to_string(index=False))
+    print("--- pooled val rmse ---")
+    for tag, v in pooled.items():
+        print(f"drop={tag:10s} {v:.4f} C")
+    print(f"chosen drop={best} on pooled val rmse {pooled[best]:.4f} C")
+    print("--- top 8 features ---")
+    print(imp.head(8).to_string(index=False))
 
 
 if __name__ == "__main__":

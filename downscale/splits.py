@@ -7,22 +7,40 @@ from downscale.config import ROOT, load_config
 from downscale.prepare import open_store
 
 
-def spatial_blocks(land, block_size, test_fraction, seed):
+def eligible_blocks(land, block_size):
     ny, nx = land.shape
-    cand = []
+    out = []
     for by in range(0, ny, block_size):
         for bx in range(0, nx, block_size):
             if land[by : by + block_size, bx : bx + block_size].mean() >= 0.5:
-                cand.append((by, bx))
+                out.append((by, bx))
+    return out
+
+
+def paint(land, block_size, picks):
     mask = np.zeros(land.shape, dtype=bool)
-    if not cand:
-        return mask
-    rng = np.random.default_rng(seed)
-    k = int(round(len(cand) * test_fraction))
-    for i in rng.choice(len(cand), size=k, replace=False):
-        by, bx = cand[i]
+    for by, bx in picks:
         mask[by : by + block_size, bx : bx + block_size] = True
     return mask
+
+
+def spatial_blocks(land, block_size, test_fraction, seed):
+    cand = eligible_blocks(land, block_size)
+    if not cand:
+        return np.zeros(land.shape, dtype=bool)
+    rng = np.random.default_rng(seed)
+    k = int(round(len(cand) * test_fraction))
+    return paint(land, block_size, [cand[i] for i in rng.choice(len(cand), size=k, replace=False)])
+
+
+def val_blocks(land, block_size, val_fraction, seed, test_mask):
+    cand = eligible_blocks(land, block_size)
+    left = [(by, bx) for by, bx in cand if not test_mask[by, bx]]
+    if not left:
+        return np.zeros(land.shape, dtype=bool)
+    rng = np.random.default_rng(seed)
+    k = min(len(left), int(round(len(cand) * val_fraction)))
+    return paint(land, block_size, [left[i] for i in rng.choice(len(left), size=k, replace=False)])
 
 
 def val_days(times, fraction, seed):
@@ -44,21 +62,31 @@ def make_splits(region):
     ds = open_store(ROOT / cfg["paths"]["processed"] / f"{region}.zarr")
     land = ds.land.values > 0.5
     times = ds.time.values
-    test_mask = spatial_blocks(land, cfg["block_size"], cfg["test_block_fraction"], cfg["seed"])
-    val_mask = val_days(times, cfg["val_day_fraction"], cfg["seed"])
+    ds.close()
+    bs = cfg["block_size"]
+    test_mask = spatial_blocks(land, bs, cfg["test_block_fraction"], cfg["seed"])
+    val_mask = val_blocks(land, bs, cfg["val_block_fraction"], cfg["seed"], test_mask)
+    day_mask = val_days(times, cfg["val_day_fraction"], cfg["seed"])
     out = ROOT / cfg["paths"]["outputs"] / region
     out.mkdir(parents=True, exist_ok=True)
     path = out / "splits.npz"
-    np.savez(path, test_mask=test_mask, val_day=val_mask, times=times)
-    ds.close()
-    print(f"{region} test blocks {int(test_mask.sum())} cells, val days {int(val_mask.sum()) // 24}")
+    np.savez(path, test_mask=test_mask, val_block=val_mask, val_day=day_mask, times=times)
+    print(
+        f"{region} test blocks {int(test_mask.sum())} cells, "
+        f"val blocks {int(val_mask.sum())} cells, val days {int(day_mask.sum()) // 24}"
+    )
     return path
 
 
 def load_splits(region):
     cfg = load_config()
     f = np.load(ROOT / cfg["paths"]["outputs"] / region / "splits.npz")
-    return {"test_mask": f["test_mask"], "val_day": f["val_day"], "times": f["times"]}
+    return {
+        "test_mask": f["test_mask"],
+        "val_block": f["val_block"],
+        "val_day": f["val_day"],
+        "times": f["times"],
+    }
 
 
 def split_masks(region):
@@ -71,11 +99,12 @@ def split_masks(region):
     yr = np.asarray(idx.year)
     tr = yr == cfg["years"]["train"]
     te = yr == cfg["years"]["test"]
-    val = s["val_day"]
+    day = s["val_day"]
     blk = s["test_mask"]
+    vblk = s["val_block"]
     return {
-        "train": (tr & ~val, land & ~blk),
-        "val": (tr & val, land & ~blk),
+        "train": (tr & ~day, land & ~blk & ~vblk),
+        "val": (tr & day, land & vblk),
         "test_blocks": (te, land & blk),
         "all_land": (te, land),
     }
