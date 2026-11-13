@@ -1,0 +1,3 @@
+run,gpus,epochs,best_val_rmse_c,best_epoch,sec_per_epoch
+commit,2x T4,40,0.6667,40,14
+interactive,2x T4,40,0.6623,34,14

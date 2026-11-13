@@ -97,7 +97,7 @@ def train(args):
             scaler.scale(loss).backward()
             scaler.step(opt)
             scaler.update()
-            tot += float(loss)
+            tot += float(loss.detach())
             nb += 1
         sched.step()
         if rank == 0:
