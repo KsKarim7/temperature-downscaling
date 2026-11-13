@@ -1,0 +1,213 @@
+region,label,method,id,name,lat,lon,station_elev,cell_elev,elev_diff,n_hours,rmse,mae,bias
+uae,UAE region,bilinear,41170,Doha International Airport,25.25,51.5667,11.0,1.6,9.4,8784,1.8523,1.357,-1.1582
+uae,UAE region,lgbm,41170,Doha International Airport,25.25,51.5667,11.0,1.6,9.4,8784,1.9756,1.5543,-1.1576
+uae,UAE region,unet_main,41170,Doha International Airport,25.25,51.5667,11.0,1.6,9.4,8784,1.9584,1.5973,-1.3206
+uae,UAE region,era5land,41170,Doha International Airport,25.25,51.5667,11.0,1.6,9.4,8784,1.9632,1.5237,-1.1265
+uae,UAE region,bilinear,41176,Umm Said,24.9,51.55,4.0,2.4,1.6,8784,1.7047,1.2814,0.1851
+uae,UAE region,lgbm,41176,Umm Said,24.9,51.55,4.0,2.4,1.6,8784,1.6809,1.3249,0.0474
+uae,UAE region,unet_main,41176,Umm Said,24.9,51.55,4.0,2.4,1.6,8784,1.6511,1.304,0.1496
+uae,UAE region,era5land,41176,Umm Said,24.9,51.55,4.0,2.4,1.6,8784,1.6617,1.3019,0.0558
+uae,UAE region,bilinear,41184,Ras Al Khaimah International Airport,25.6167,55.9333,31.0,35.7,-4.7,8784,2.6927,2.2496,-0.2008
+uae,UAE region,lgbm,41184,Ras Al Khaimah International Airport,25.6167,55.9333,31.0,35.7,-4.7,8784,2.1599,1.7352,-0.0355
+uae,UAE region,unet_main,41184,Ras Al Khaimah International Airport,25.6167,55.9333,31.0,35.7,-4.7,8784,2.0377,1.6494,-0.1544
+uae,UAE region,era5land,41184,Ras Al Khaimah International Airport,25.6167,55.9333,31.0,35.7,-4.7,8784,2.4035,1.8688,-0.0379
+uae,UAE region,bilinear,41196,Sharjah International Airport,25.3333,55.5167,35.0,29.9,5.1,8784,1.2322,0.9481,0.1618
+uae,UAE region,lgbm,41196,Sharjah International Airport,25.3333,55.5167,35.0,29.9,5.1,8784,1.4473,1.1256,-0.3476
+uae,UAE region,unet_main,41196,Sharjah International Airport,25.3333,55.5167,35.0,29.9,5.1,8784,1.5337,1.1935,-0.4803
+uae,UAE region,era5land,41196,Sharjah International Airport,25.3333,55.5167,35.0,29.9,5.1,8784,1.6142,1.2764,-0.6866
+uae,UAE region,bilinear,41198,Fujairah,25.1,56.3333,28.0,80.6,-52.6,8784,1.6905,1.3304,-0.8847
+uae,UAE region,lgbm,41198,Fujairah,25.1,56.3333,28.0,80.6,-52.6,8784,2.2098,1.8026,-0.9927
+uae,UAE region,unet_main,41198,Fujairah,25.1,56.3333,28.0,80.6,-52.6,8784,2.8203,2.3941,-1.8258
+uae,UAE region,era5land,41198,Fujairah,25.1,56.3333,28.0,80.6,-52.6,8784,2.5639,2.0741,-1.7605
+uae,UAE region,bilinear,41216,Abu Dhabi Bateen Airport,24.4333,54.4667,5.0,3.7,1.3,8784,1.0187,0.79,-0.2569
+uae,UAE region,lgbm,41216,Abu Dhabi Bateen Airport,24.4333,54.4667,5.0,3.7,1.3,8784,1.7313,1.4007,-0.6483
+uae,UAE region,unet_main,41216,Abu Dhabi Bateen Airport,24.4333,54.4667,5.0,3.7,1.3,8784,1.7354,1.3886,-0.5787
+uae,UAE region,era5land,41216,Abu Dhabi Bateen Airport,24.4333,54.4667,5.0,3.7,1.3,8784,1.6536,1.3066,-0.6714
+uae,UAE region,bilinear,41217,Abu Dhabi International Airport,24.4333,54.65,16.0,6.4,9.6,8784,0.9506,0.7427,-0.2278
+uae,UAE region,lgbm,41217,Abu Dhabi International Airport,24.4333,54.65,16.0,6.4,9.6,8784,1.6591,1.3537,-0.6011
+uae,UAE region,unet_main,41217,Abu Dhabi International Airport,24.4333,54.65,16.0,6.4,9.6,8784,1.6629,1.3451,-0.6169
+uae,UAE region,era5land,41217,Abu Dhabi International Airport,24.4333,54.65,16.0,6.4,9.6,8784,1.6603,1.3182,-0.6559
+uae,UAE region,bilinear,41218,Al Ain International Airport,24.2667,55.6,265.0,246.3,18.7,8784,1.1262,0.869,-0.2182
+uae,UAE region,lgbm,41218,Al Ain International Airport,24.2667,55.6,265.0,246.3,18.7,8784,1.7444,1.3716,-1.0818
+uae,UAE region,unet_main,41218,Al Ain International Airport,24.2667,55.6,265.0,246.3,18.7,8784,1.5488,1.1944,-0.8929
+uae,UAE region,era5land,41218,Al Ain International Airport,24.2667,55.6,265.0,246.3,18.7,8784,1.8414,1.4118,-1.1264
+uae,UAE region,bilinear,41242,Diba  / Gharb?yah,25.6156,56.2472,20.0,365.9,-345.9,8784,1.8069,1.4836,-0.8385
+uae,UAE region,lgbm,41242,Diba  / Gharb?yah,25.6156,56.2472,20.0,365.9,-345.9,8784,2.4612,2.0234,-1.7979
+uae,UAE region,unet_main,41242,Diba  / Gharb?yah,25.6156,56.2472,20.0,365.9,-345.9,8784,2.773,2.3037,-2.1337
+uae,UAE region,era5land,41242,Diba  / Gharb?yah,25.6156,56.2472,20.0,365.9,-345.9,8784,2.5357,2.1248,-1.8725
+uae,UAE region,bilinear,41244,Buraimi,24.2333,55.7833,299.0,308.7,-9.7,8784,1.1932,0.9239,-0.3762
+uae,UAE region,lgbm,41244,Buraimi,24.2333,55.7833,299.0,308.7,-9.7,8784,1.8794,1.4578,-1.0706
+uae,UAE region,unet_main,41244,Buraimi,24.2333,55.7833,299.0,308.7,-9.7,8784,1.9496,1.5247,-1.2671
+uae,UAE region,era5land,41244,Buraimi,24.2333,55.7833,299.0,308.7,-9.7,8784,2.0131,1.5189,-1.112
+uae,UAE region,bilinear,41252,Ibri / Khall?,23.2258,56.4275,244.0,316.8,-72.8,8587,1.4851,1.157,0.4611
+uae,UAE region,lgbm,41252,Ibri / Khall?,23.2258,56.4275,244.0,316.8,-72.8,8587,1.3921,1.0762,-0.4405
+uae,UAE region,unet_main,41252,Ibri / Khall?,23.2258,56.4275,244.0,316.8,-72.8,8587,1.2492,0.9436,-0.3197
+uae,UAE region,era5land,41252,Ibri / Khall?,23.2258,56.4275,244.0,316.8,-72.8,8587,1.1302,0.8609,-0.4075
+uae,UAE region,bilinear,69810,Al Dhafra / Al Muqa??arah,24.25,54.55,23.0,6.2,16.8,8576,2.1572,1.6192,-0.0799
+uae,UAE region,lgbm,69810,Al Dhafra / Al Muqa??arah,24.25,54.55,23.0,6.2,16.8,8576,2.2342,1.661,-0.4165
+uae,UAE region,unet_main,69810,Al Dhafra / Al Muqa??arah,24.25,54.55,23.0,6.2,16.8,8576,2.2338,1.6513,-0.3685
+uae,UAE region,era5land,69810,Al Dhafra / Al Muqa??arah,24.25,54.55,23.0,6.2,16.8,8576,2.2693,1.6735,-0.4474
+uae,UAE region,bilinear,OTBH0,Al Udeid Air Base / Aludaid / Umm az Zub?r,25.1173,51.315,40.0,37.4,2.6,8784,1.2109,0.9495,-0.6941
+uae,UAE region,lgbm,OTBH0,Al Udeid Air Base / Aludaid / Umm az Zub?r,25.1173,51.315,40.0,37.4,2.6,8784,1.5805,1.2567,-1.0531
+uae,UAE region,unet_main,OTBH0,Al Udeid Air Base / Aludaid / Umm az Zub?r,25.1173,51.315,40.0,37.4,2.6,8784,1.5116,1.2088,-0.9868
+uae,UAE region,era5land,OTBH0,Al Udeid Air Base / Aludaid / Umm az Zub?r,25.1173,51.315,40.0,37.4,2.6,8784,1.5296,1.1884,-0.9219
+uae,UAE region,bilinear,OTHH0,New Doha International Airport (ndia),25.2731,51.6081,7.0,1.6,5.4,8784,1.3632,0.9938,-0.6257
+uae,UAE region,lgbm,OTHH0,New Doha International Airport (ndia),25.2731,51.6081,7.0,1.6,5.4,8784,1.6254,1.2863,-0.6251
+uae,UAE region,unet_main,OTHH0,New Doha International Airport (ndia),25.2731,51.6081,7.0,1.6,5.4,8784,1.5737,1.2753,-0.7881
+uae,UAE region,era5land,OTHH0,New Doha International Airport (ndia),25.2731,51.6081,7.0,1.6,5.4,8784,1.6173,1.2561,-0.5941
+bangladesh,Bangladesh region,bilinear,41859,Rangpur,25.7333,89.2333,33.0,32.6,0.4,8587,1.6792,1.4002,0.8707
+bangladesh,Bangladesh region,lgbm,41859,Rangpur,25.7333,89.2333,33.0,32.6,0.4,8587,1.3228,1.03,0.4243
+bangladesh,Bangladesh region,unet_main,41859,Rangpur,25.7333,89.2333,33.0,32.6,0.4,8587,1.1945,0.9288,0.2923
+bangladesh,Bangladesh region,era5land,41859,Rangpur,25.7333,89.2333,33.0,32.6,0.4,8587,1.2404,0.9367,0.4474
+bangladesh,Bangladesh region,bilinear,41883,Bogra,24.85,89.3667,18.0,18.1,-0.1,8587,1.6913,1.3826,0.7228
+bangladesh,Bangladesh region,lgbm,41883,Bogra,24.85,89.3667,18.0,18.1,-0.1,8587,1.3515,1.0355,0.4104
+bangladesh,Bangladesh region,unet_main,41883,Bogra,24.85,89.3667,18.0,18.1,-0.1,8587,1.2473,0.9495,0.2325
+bangladesh,Bangladesh region,era5land,41883,Bogra,24.85,89.3667,18.0,18.1,-0.1,8587,1.2139,0.9032,0.429
+bangladesh,Bangladesh region,bilinear,41891,Sylhet,24.9,91.8833,34.0,21.9,12.1,8627,1.4929,1.1839,0.3722
+bangladesh,Bangladesh region,lgbm,41891,Sylhet,24.9,91.8833,34.0,21.9,12.1,8627,1.4205,1.082,-0.2851
+bangladesh,Bangladesh region,unet_main,41891,Sylhet,24.9,91.8833,34.0,21.9,12.1,8627,1.4447,1.0947,-0.5438
+bangladesh,Bangladesh region,era5land,41891,Sylhet,24.9,91.8833,34.0,21.9,12.1,8627,1.4627,1.0964,-0.3869
+bangladesh,Bangladesh region,bilinear,41895,Rajshahi,24.3667,88.7,17.0,17.0,-0.0,8622,1.7074,1.3793,0.6466
+bangladesh,Bangladesh region,lgbm,41895,Rajshahi,24.3667,88.7,17.0,17.0,-0.0,8622,1.473,1.1316,0.3723
+bangladesh,Bangladesh region,unet_main,41895,Rajshahi,24.3667,88.7,17.0,17.0,-0.0,8622,1.4174,1.0851,0.2105
+bangladesh,Bangladesh region,era5land,41895,Rajshahi,24.3667,88.7,17.0,17.0,-0.0,8622,1.4083,1.039,0.4146
+bangladesh,Bangladesh region,bilinear,41907,Ishurdi,24.1333,89.05,13.0,15.3,-2.3,8627,1.6349,1.3015,0.6051
+bangladesh,Bangladesh region,lgbm,41907,Ishurdi,24.1333,89.05,13.0,15.3,-2.3,8627,1.4563,1.1049,0.3138
+bangladesh,Bangladesh region,unet_main,41907,Ishurdi,24.1333,89.05,13.0,15.3,-2.3,8627,1.4364,1.0876,0.1628
+bangladesh,Bangladesh region,era5land,41907,Ishurdi,24.1333,89.05,13.0,15.3,-2.3,8627,1.4256,1.0535,0.3721
+bangladesh,Bangladesh region,bilinear,41923,Dhaka,23.7667,90.3833,8.0,9.8,-1.8,8784,1.4992,1.1432,-0.7485
+bangladesh,Bangladesh region,lgbm,41923,Dhaka,23.7667,90.3833,8.0,9.8,-1.8,8784,1.7041,1.4268,-1.0937
+bangladesh,Bangladesh region,unet_main,41923,Dhaka,23.7667,90.3833,8.0,9.8,-1.8,8784,1.8339,1.5336,-1.2015
+bangladesh,Bangladesh region,era5land,41923,Dhaka,23.7667,90.3833,8.0,9.8,-1.8,8784,1.7473,1.4462,-1.0731
+bangladesh,Bangladesh region,bilinear,41936,Jessore,23.1833,89.1667,6.0,9.6,-3.6,8627,1.6228,1.2759,0.5863
+bangladesh,Bangladesh region,lgbm,41936,Jessore,23.1833,89.1667,6.0,9.6,-3.6,8627,1.4524,1.0902,0.249
+bangladesh,Bangladesh region,unet_main,41936,Jessore,23.1833,89.1667,6.0,9.6,-3.6,8627,1.4467,1.0726,0.1523
+bangladesh,Bangladesh region,era5land,41936,Jessore,23.1833,89.1667,6.0,9.6,-3.6,8627,1.4363,1.0426,0.2712
+bangladesh,Bangladesh region,bilinear,41943,Feni,23.0333,91.4167,6.0,7.6,-1.6,8587,1.5099,1.2325,0.7749
+bangladesh,Bangladesh region,lgbm,41943,Feni,23.0333,91.4167,6.0,7.6,-1.6,8587,1.2081,0.893,0.4096
+bangladesh,Bangladesh region,unet_main,41943,Feni,23.0333,91.4167,6.0,7.6,-1.6,8587,1.1145,0.8244,0.2669
+bangladesh,Bangladesh region,era5land,41943,Feni,23.0333,91.4167,6.0,7.6,-1.6,8587,1.1447,0.8388,0.4764
+bangladesh,Bangladesh region,bilinear,41947,Khulna,22.7833,89.5333,3.0,2.4,0.6,8784,1.1934,0.9001,-0.4421
+bangladesh,Bangladesh region,lgbm,41947,Khulna,22.7833,89.5333,3.0,2.4,0.6,8784,1.4293,1.1737,-0.7495
+bangladesh,Bangladesh region,unet_main,41947,Khulna,22.7833,89.5333,3.0,2.4,0.6,8784,1.5584,1.2967,-0.8657
+bangladesh,Bangladesh region,era5land,41947,Khulna,22.7833,89.5333,3.0,2.4,0.6,8784,1.4937,1.2356,-0.7611
+bangladesh,Bangladesh region,bilinear,41950,Barisal,22.75,90.3667,3.0,3.6,-0.6,8784,1.6007,1.2212,0.5854
+bangladesh,Bangladesh region,lgbm,41950,Barisal,22.75,90.3667,3.0,3.6,-0.6,8784,1.6446,1.2655,0.226
+bangladesh,Bangladesh region,unet_main,41950,Barisal,22.75,90.3667,3.0,3.6,-0.6,8784,1.5878,1.2506,0.1133
+bangladesh,Bangladesh region,era5land,41950,Barisal,22.75,90.3667,3.0,3.6,-0.6,8784,1.4981,1.1909,0.12
+bangladesh,Bangladesh region,bilinear,41978,Chittagong Patenga,22.2667,91.8167,4.0,5.4,-1.4,8784,1.4311,1.1185,-0.5173
+bangladesh,Bangladesh region,lgbm,41978,Chittagong Patenga,22.2667,91.8167,4.0,5.4,-1.4,8784,1.609,1.2971,-0.9021
+bangladesh,Bangladesh region,unet_main,41978,Chittagong Patenga,22.2667,91.8167,4.0,5.4,-1.4,8784,1.5696,1.2733,-0.9597
+bangladesh,Bangladesh region,era5land,41978,Chittagong Patenga,22.2667,91.8167,4.0,5.4,-1.4,8784,1.5319,1.2318,-0.8585
+bangladesh,Bangladesh region,bilinear,41992,Cox's Bazar,21.4333,91.9667,2.0,11.2,-9.2,8627,1.2921,1.0345,0.1268
+bangladesh,Bangladesh region,lgbm,41992,Cox's Bazar,21.4333,91.9667,2.0,11.2,-9.2,8627,1.2549,0.9314,-0.3422
+bangladesh,Bangladesh region,unet_main,41992,Cox's Bazar,21.4333,91.9667,2.0,11.2,-9.2,8627,1.1751,0.8915,-0.2144
+bangladesh,Bangladesh region,era5land,41992,Cox's Bazar,21.4333,91.9667,2.0,11.2,-9.2,8627,1.1434,0.8374,-0.3005
+bangladesh,Bangladesh region,bilinear,42397,Siliguri,26.6667,88.3667,123.0,119.7,3.3,8617,1.8482,1.4112,-0.2094
+bangladesh,Bangladesh region,lgbm,42397,Siliguri,26.6667,88.3667,123.0,119.7,3.3,8617,1.6737,1.2263,-0.5712
+bangladesh,Bangladesh region,unet_main,42397,Siliguri,26.6667,88.3667,123.0,119.7,3.3,8617,1.7203,1.2576,-0.6744
+bangladesh,Bangladesh region,era5land,42397,Siliguri,26.6667,88.3667,123.0,119.7,3.3,8617,1.766,1.3199,0.189
+bangladesh,Bangladesh region,bilinear,42398,Siliguri,26.6333,88.3167,126.0,104.4,21.6,8627,1.7941,1.4327,-0.2329
+bangladesh,Bangladesh region,lgbm,42398,Siliguri,26.6333,88.3167,126.0,104.4,21.6,8627,1.7177,1.2922,-0.7606
+bangladesh,Bangladesh region,unet_main,42398,Siliguri,26.6333,88.3167,126.0,104.4,21.6,8627,1.7095,1.2748,-0.712
+bangladesh,Bangladesh region,era5land,42398,Siliguri,26.6333,88.3167,126.0,104.4,21.6,8627,1.6169,1.2498,0.0816
+bangladesh,Bangladesh region,bilinear,42399,Jalpaiguri,26.5333,88.7167,0.0,82.0,-82.0,8633,1.8803,1.5448,1.1557
+bangladesh,Bangladesh region,lgbm,42399,Jalpaiguri,26.5333,88.7167,0.0,82.0,-82.0,8633,1.5461,1.2193,0.653
+bangladesh,Bangladesh region,unet_main,42399,Jalpaiguri,26.5333,88.7167,0.0,82.0,-82.0,8633,1.525,1.182,0.6048
+bangladesh,Bangladesh region,era5land,42399,Jalpaiguri,26.5333,88.7167,0.0,82.0,-82.0,8633,1.6646,1.2889,0.6881
+bangladesh,Bangladesh region,bilinear,42403,Cooch Behar,26.3333,89.4667,41.0,41.1,-0.1,8635,1.8701,1.5395,0.835
+bangladesh,Bangladesh region,lgbm,42403,Cooch Behar,26.3333,89.4667,41.0,41.1,-0.1,8635,1.6438,1.2665,0.1097
+bangladesh,Bangladesh region,unet_main,42403,Cooch Behar,26.3333,89.4667,41.0,41.1,-0.1,8635,1.5671,1.1761,0.1381
+bangladesh,Bangladesh region,era5land,42403,Cooch Behar,26.3333,89.4667,41.0,41.1,-0.1,8635,1.7115,1.2826,0.0939
+bangladesh,Bangladesh region,bilinear,42404,Dhubri,26.0167,89.9833,0.0,27.6,-27.6,8641,1.637,1.3374,0.8099
+bangladesh,Bangladesh region,lgbm,42404,Dhubri,26.0167,89.9833,0.0,27.6,-27.6,8641,1.3516,1.0344,0.2119
+bangladesh,Bangladesh region,unet_main,42404,Dhubri,26.0167,89.9833,0.0,27.6,-27.6,8641,1.31,1.0025,0.0378
+bangladesh,Bangladesh region,era5land,42404,Dhubri,26.0167,89.9833,0.0,27.6,-27.6,8641,1.1945,0.8889,0.2305
+bangladesh,Bangladesh region,bilinear,42406,Dhubri Rupsi,26.15,89.9167,35.0,41.8,-6.8,8620,1.9536,1.6364,1.2785
+bangladesh,Bangladesh region,lgbm,42406,Dhubri Rupsi,26.15,89.9167,35.0,41.8,-6.8,8620,1.4679,1.1424,0.6386
+bangladesh,Bangladesh region,unet_main,42406,Dhubri Rupsi,26.15,89.9167,35.0,41.8,-6.8,8620,1.3859,1.068,0.5502
+bangladesh,Bangladesh region,era5land,42406,Dhubri Rupsi,26.15,89.9167,35.0,41.8,-6.8,8620,1.4379,1.1003,0.7176
+bangladesh,Bangladesh region,bilinear,42407,Goalpara,26.1833,90.6333,36.0,44.4,-8.4,8625,1.6359,1.3536,0.9723
+bangladesh,Bangladesh region,lgbm,42407,Goalpara,26.1833,90.6333,36.0,44.4,-8.4,8625,1.28,0.9858,0.3169
+bangladesh,Bangladesh region,unet_main,42407,Goalpara,26.1833,90.6333,36.0,44.4,-8.4,8625,1.1916,0.9118,0.1509
+bangladesh,Bangladesh region,era5land,42407,Goalpara,26.1833,90.6333,36.0,44.4,-8.4,8625,1.1963,0.9122,0.3414
+bangladesh,Bangladesh region,bilinear,42408,Rangia,26.4333,91.6167,57.0,51.8,5.2,8625,1.8167,1.5183,1.2858
+bangladesh,Bangladesh region,lgbm,42408,Rangia,26.4333,91.6167,57.0,51.8,5.2,8625,1.4253,1.1376,0.7673
+bangladesh,Bangladesh region,unet_main,42408,Rangia,26.4333,91.6167,57.0,51.8,5.2,8625,1.2106,0.948,0.4376
+bangladesh,Bangladesh region,era5land,42408,Rangia,26.4333,91.6167,57.0,51.8,5.2,8625,1.4965,1.1864,0.8839
+bangladesh,Bangladesh region,bilinear,42410,Gauhati,26.1,91.5833,47.0,69.7,-22.7,8772,1.544,1.2078,-0.1845
+bangladesh,Bangladesh region,lgbm,42410,Gauhati,26.1,91.5833,47.0,69.7,-22.7,8772,1.9121,1.536,-1.0843
+bangladesh,Bangladesh region,unet_main,42410,Gauhati,26.1,91.5833,47.0,69.7,-22.7,8772,2.0126,1.6418,-1.2959
+bangladesh,Bangladesh region,era5land,42410,Gauhati,26.1,91.5833,47.0,69.7,-22.7,8772,2.0875,1.6949,-1.1802
+bangladesh,Bangladesh region,bilinear,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.721,1.3691,0.887
+bangladesh,Bangladesh region,lgbm,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.4652,1.0922,0.3428
+bangladesh,Bangladesh region,unet_main,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.3953,1.0242,0.2341
+bangladesh,Bangladesh region,era5land,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.5148,1.0897,0.2549
+bangladesh,Bangladesh region,bilinear,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.8409,5.5079,5.339
+bangladesh,Bangladesh region,lgbm,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.263,4.9635,4.8014
+bangladesh,Bangladesh region,unet_main,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.0204,4.7265,4.5423
+bangladesh,Bangladesh region,era5land,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.3117,5.0375,4.8838
+bangladesh,Bangladesh region,bilinear,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.7516,1.4018,0.2192
+bangladesh,Bangladesh region,lgbm,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.5871,1.2476,-0.112
+bangladesh,Bangladesh region,unet_main,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.588,1.2361,-0.1947
+bangladesh,Bangladesh region,era5land,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.5256,1.1535,-0.1118
+bangladesh,Bangladesh region,bilinear,42506,Balurghat,25.2167,88.7833,0.0,23.8,-23.8,8627,1.8561,1.5214,0.8051
+bangladesh,Bangladesh region,lgbm,42506,Balurghat,25.2167,88.7833,0.0,23.8,-23.8,8627,1.5373,1.1729,0.5008
+bangladesh,Bangladesh region,unet_main,42506,Balurghat,25.2167,88.7833,0.0,23.8,-23.8,8627,1.428,1.0683,0.362
+bangladesh,Bangladesh region,era5land,42506,Balurghat,25.2167,88.7833,0.0,23.8,-23.8,8627,1.5752,1.1692,0.523
+bangladesh,Bangladesh region,bilinear,42512,Barapani / Bara Pani,25.7,91.9667,893.0,934.9,-41.9,8677,2.0964,1.7233,0.4816
+bangladesh,Bangladesh region,lgbm,42512,Barapani / Bara Pani,25.7,91.9667,893.0,934.9,-41.9,8677,2.241,1.7244,-0.8208
+bangladesh,Bangladesh region,unet_main,42512,Barapani / Bara Pani,25.7,91.9667,893.0,934.9,-41.9,8677,2.0333,1.5927,-0.0556
+bangladesh,Bangladesh region,era5land,42512,Barapani / Bara Pani,25.7,91.9667,893.0,934.9,-41.9,8677,1.9915,1.496,-0.1934
+bangladesh,Bangladesh region,bilinear,42515,Cherrapunji,25.25,91.7333,1312.0,1296.5,15.5,8627,4.0236,3.7502,3.7252
+bangladesh,Bangladesh region,lgbm,42515,Cherrapunji,25.25,91.7333,1312.0,1296.5,15.5,8627,2.3556,2.0739,1.9432
+bangladesh,Bangladesh region,unet_main,42515,Cherrapunji,25.25,91.7333,1312.0,1296.5,15.5,8627,2.702,2.4351,2.3704
+bangladesh,Bangladesh region,era5land,42515,Cherrapunji,25.25,91.7333,1312.0,1296.5,15.5,8627,2.7441,2.5243,2.4563
+bangladesh,Bangladesh region,bilinear,42516,Shillong,25.5667,91.8833,1598.0,1380.0,218.0,8652,3.0095,2.6673,2.5416
+bangladesh,Bangladesh region,lgbm,42516,Shillong,25.5667,91.8833,1598.0,1380.0,218.0,8652,1.8908,1.5498,1.0644
+bangladesh,Bangladesh region,unet_main,42516,Shillong,25.5667,91.8833,1598.0,1380.0,218.0,8652,2.175,1.8449,1.5313
+bangladesh,Bangladesh region,era5land,42516,Shillong,25.5667,91.8833,1598.0,1380.0,218.0,8652,2.0012,1.6281,1.3669
+bangladesh,Bangladesh region,bilinear,42603,Berhampore,24.1333,88.2667,18.0,18.4,-0.4,8627,1.8872,1.5335,0.5261
+bangladesh,Bangladesh region,lgbm,42603,Berhampore,24.1333,88.2667,18.0,18.4,-0.4,8627,1.585,1.1793,0.2288
+bangladesh,Bangladesh region,unet_main,42603,Berhampore,24.1333,88.2667,18.0,18.4,-0.4,8627,1.5378,1.1466,0.0651
+bangladesh,Bangladesh region,era5land,42603,Berhampore,24.1333,88.2667,18.0,18.4,-0.4,8627,1.3402,0.9797,0.2411
+bangladesh,Bangladesh region,bilinear,42618,Kailashahar,24.3167,92.0,27.0,37.1,-10.1,8643,1.7537,1.4284,0.9815
+bangladesh,Bangladesh region,lgbm,42618,Kailashahar,24.3167,92.0,27.0,37.1,-10.1,8643,1.4462,1.1214,0.3193
+bangladesh,Bangladesh region,unet_main,42618,Kailashahar,24.3167,92.0,27.0,37.1,-10.1,8643,1.3966,1.0801,0.1804
+bangladesh,Bangladesh region,era5land,42618,Kailashahar,24.3167,92.0,27.0,37.1,-10.1,8643,1.4265,1.0818,0.1681
+bangladesh,Bangladesh region,bilinear,42711,Krishnanagar,23.4,88.5167,12.0,12.6,-0.6,8625,1.8359,1.5017,0.6187
+bangladesh,Bangladesh region,lgbm,42711,Krishnanagar,23.4,88.5167,12.0,12.6,-0.6,8625,1.4542,1.1,0.294
+bangladesh,Bangladesh region,unet_main,42711,Krishnanagar,23.4,88.5167,12.0,12.6,-0.6,8625,1.438,1.0791,0.1923
+bangladesh,Bangladesh region,era5land,42711,Krishnanagar,23.4,88.5167,12.0,12.6,-0.6,8625,1.2938,0.9257,0.2355
+bangladesh,Bangladesh region,bilinear,42714,Bagati,22.9833,88.3667,0.0,8.6,-8.6,8625,1.8321,1.4788,0.6202
+bangladesh,Bangladesh region,lgbm,42714,Bagati,22.9833,88.3667,0.0,8.6,-8.6,8625,1.474,1.0838,0.2351
+bangladesh,Bangladesh region,unet_main,42714,Bagati,22.9833,88.3667,0.0,8.6,-8.6,8625,1.4665,1.0701,0.1773
+bangladesh,Bangladesh region,era5land,42714,Bagati,22.9833,88.3667,0.0,8.6,-8.6,8625,1.4313,1.0039,0.1767
+bangladesh,Bangladesh region,bilinear,42724,Agartala,23.8833,91.25,15.0,24.4,-9.4,8737,1.6043,1.2036,0.3088
+bangladesh,Bangladesh region,lgbm,42724,Agartala,23.8833,91.25,15.0,24.4,-9.4,8737,1.704,1.2948,-0.1258
+bangladesh,Bangladesh region,unet_main,42724,Agartala,23.8833,91.25,15.0,24.4,-9.4,8737,1.7105,1.3014,-0.31
+bangladesh,Bangladesh region,era5land,42724,Agartala,23.8833,91.25,15.0,24.4,-9.4,8737,1.7974,1.3314,-0.1524
+bangladesh,Bangladesh region,bilinear,42807,Calcutta / Alipore,22.5333,88.3333,5.0,6.9,-1.9,8611,1.5514,1.2288,0.4603
+bangladesh,Bangladesh region,lgbm,42807,Calcutta / Alipore,22.5333,88.3333,5.0,6.9,-1.9,8611,1.3214,1.0284,0.0642
+bangladesh,Bangladesh region,unet_main,42807,Calcutta / Alipore,22.5333,88.3333,5.0,6.9,-1.9,8611,1.2956,0.9948,-0.0232
+bangladesh,Bangladesh region,era5land,42807,Calcutta / Alipore,22.5333,88.3333,5.0,6.9,-1.9,8611,1.347,1.0035,-0.0223
+bangladesh,Bangladesh region,bilinear,42809,Calcutta / Dum Dum,22.65,88.45,4.0,7.6,-3.6,8784,1.3403,1.0137,-0.4066
+bangladesh,Bangladesh region,lgbm,42809,Calcutta / Dum Dum,22.65,88.45,4.0,7.6,-3.6,8784,1.6224,1.3143,-0.7656
+bangladesh,Bangladesh region,unet_main,42809,Calcutta / Dum Dum,22.65,88.45,4.0,7.6,-3.6,8784,1.6355,1.3175,-0.8226
+bangladesh,Bangladesh region,era5land,42809,Calcutta / Dum Dum,22.65,88.45,4.0,7.6,-3.6,8784,1.7743,1.4377,-0.8402
+bangladesh,Bangladesh region,bilinear,42811,Diamond Harbour,22.1833,88.2,4.0,3.5,0.5,8647,1.6788,1.3493,0.6466
+bangladesh,Bangladesh region,lgbm,42811,Diamond Harbour,22.1833,88.2,4.0,3.5,0.5,8647,1.3744,1.0886,0.221
+bangladesh,Bangladesh region,unet_main,42811,Diamond Harbour,22.1833,88.2,4.0,3.5,0.5,8647,1.4288,1.1245,0.2753
+bangladesh,Bangladesh region,era5land,42811,Diamond Harbour,22.1833,88.2,4.0,3.5,0.5,8647,1.3654,1.0425,0.1315
+bangladesh,Bangladesh region,bilinear,42812,Canning,22.25,88.6667,3.0,2.3,0.7,8629,1.6861,1.3796,0.7913
+bangladesh,Bangladesh region,lgbm,42812,Canning,22.25,88.6667,3.0,2.3,0.7,8629,1.2755,0.9933,0.4348
+bangladesh,Bangladesh region,unet_main,42812,Canning,22.25,88.6667,3.0,2.3,0.7,8629,1.2606,0.9754,0.3696
+bangladesh,Bangladesh region,era5land,42812,Canning,22.25,88.6667,3.0,2.3,0.7,8629,1.2979,0.978,0.3439
+bangladesh,Bangladesh region,bilinear,VELP0,Lengpui / Hmunpui,23.8406,92.6197,426.0,464.4,-38.4,8655,1.7305,1.3505,0.1616
+bangladesh,Bangladesh region,lgbm,VELP0,Lengpui / Hmunpui,23.8406,92.6197,426.0,464.4,-38.4,8655,1.7311,1.3038,-0.6756
+bangladesh,Bangladesh region,unet_main,VELP0,Lengpui / Hmunpui,23.8406,92.6197,426.0,464.4,-38.4,8655,1.7971,1.3631,-0.9142
+bangladesh,Bangladesh region,era5land,VELP0,Lengpui / Hmunpui,23.8406,92.6197,426.0,464.4,-38.4,8655,1.837,1.3392,-0.7695
+bangladesh,Bangladesh region,bilinear,VGHS0,Dhaka / Solpur,23.8433,90.3978,10.0,9.8,0.2,8783,1.5119,1.141,-0.3415
+bangladesh,Bangladesh region,lgbm,VGHS0,Dhaka / Solpur,23.8433,90.3978,10.0,9.8,0.2,8783,1.556,1.2501,-0.6867
+bangladesh,Bangladesh region,unet_main,VGHS0,Dhaka / Solpur,23.8433,90.3978,10.0,9.8,0.2,8783,1.6973,1.355,-0.7945
+bangladesh,Bangladesh region,era5land,VGHS0,Dhaka / Solpur,23.8433,90.3978,10.0,9.8,0.2,8783,1.6933,1.3319,-0.666

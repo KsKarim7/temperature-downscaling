@@ -1,0 +1,10 @@
+region,label,method,landcover,cells,rmse_c,mae_c,bias_c,n,skill
+uae,UAE region,bilinear,bare,244,1.1833,0.9203,0.4095,2143296,0.0
+uae,UAE region,lgbm,bare,244,0.8246,0.624,0.05,2143296,0.3031
+uae,UAE region,unet_main,bare,244,0.7804,0.5859,0.0471,2143296,0.3405
+bangladesh,Bangladesh region,bilinear,crop,281,1.4144,1.1473,0.4188,2468304,0.0
+bangladesh,Bangladesh region,bilinear,tree,269,1.5274,1.2399,0.6523,2362896,0.0
+bangladesh,Bangladesh region,lgbm,crop,281,0.9345,0.7087,0.0185,2468304,0.3393
+bangladesh,Bangladesh region,lgbm,tree,269,0.9537,0.7276,-0.0148,2362896,0.3756
+bangladesh,Bangladesh region,unet_main,crop,281,0.9105,0.6866,-0.1233,2468304,0.3563
+bangladesh,Bangladesh region,unet_main,tree,269,0.9226,0.7003,-0.137,2362896,0.396
