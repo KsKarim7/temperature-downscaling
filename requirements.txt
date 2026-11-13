@@ -15,6 +15,7 @@ cdsapi
 requests
 lightgbm
 matplotlib
+scipy
 meteostat
 anthropic
 pyyaml

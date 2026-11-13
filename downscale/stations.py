@@ -1,12 +1,18 @@
+import matplotlib
+
+matplotlib.use("Agg")
+
 import argparse
 import datetime as dt
 
 import lightgbm as lgb
+import matplotlib.pyplot as plt
 import meteostat
 import numpy as np
 import pandas as pd
 import torch
 from meteostat import Parameter
+from scipy.stats import spearmanr
 
 from downscale.baselines import build_x, store_path
 from downscale.config import ROOT, load_config
@@ -163,12 +169,104 @@ def run_region(region, name, booster, lnames, model, names, norm, dev, batch):
     return rows, len(keep)
 
 
+def is_airport(name):
+    s = str(name).lower()
+    return any(k in s for k in ("airport", "intl", "international"))
+
+
+def neighbourhood_land(land, i, j):
+    ny, nx = land.shape
+    a = max(i - 1, 0)
+    b = min(i + 2, ny)
+    c = max(j - 1, 0)
+    d = min(j + 2, nx)
+    return float(land[a:b, c:d].mean())
+
+
+def drivers(name):
+    cfg = load_config()
+    rep = ROOT / cfg["paths"]["reports"]
+    df = pd.read_csv(rep / "stations.csv")
+    rows = []
+    for region in sorted(df.region.unique()):
+        ds = open_store(store_path(region))
+        land = (ds.land.values > 0.5).astype("float32")
+        sub = df[df.region == region]
+        for sid in sub.id.unique():
+            s = sub[sub.id == sid]
+            e = s[s.method == "era5land"].iloc[0]
+            u = s[s.method == name].iloc[0]
+            i, j = nearest_cell(ds, e.lat, e.lon)
+            rows.append(
+                {
+                    "id": sid,
+                    "name": e["name"],
+                    "region": region,
+                    "label": LABEL[region],
+                    "era5land_bias": round(float(e.bias), 4),
+                    "unet_bias": round(float(u.bias), 4),
+                    "lc_built": round(float(ds.lc_built.values[i, j]), 4),
+                    "lc_water": round(float(ds.lc_water.values[i, j]), 4),
+                    "land_frac_3x3": round(neighbourhood_land(land, i, j), 4),
+                    "elev_diff": e.elev_diff,
+                    "airport": is_airport(e["name"]),
+                }
+            )
+        ds.close()
+    out = pd.DataFrame(rows)
+    out.to_csv(rep / "stations_bias_drivers.csv", index=False)
+    return out
+
+
+def report_drivers(out, fdir):
+    print("station counts are small, so read every number below as suggestive, not significant")
+    for region in sorted(out.region.unique()):
+        s = out[out.region == region]
+        print(f"--- {LABEL[region]}, n = {len(s)} stations ---")
+        for col in ("lc_built", "land_frac_3x3", "elev_diff"):
+            v = s[["era5land_bias", col]].dropna()
+            rho, p = spearmanr(v.era5land_bias, v[col])
+            flag = "" if p < 0.05 else "  (not significant)"
+            print(f"era5land_bias vs {col:14s} rho {rho:+.3f}  p {p:.3f}  n {len(v)}{flag}")
+        for a, b in ((s.airport, "airport"), (s.land_frac_3x3 < 0.7, "coastal")):
+            g1 = s[a].era5land_bias
+            g0 = s[~a].era5land_bias
+            m1 = f"{g1.mean():+.3f} c" if len(g1) else "no stations"
+            m0 = f"{g0.mean():+.3f} c" if len(g0) else "no stations"
+            print(f"mean era5land_bias {b} {m1} (n {len(g1)})  not {b} {m0} (n {len(g0)})")
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4), sharey=True)
+    for ax, col, xl in zip(
+        axes,
+        ("lc_built", "land_frac_3x3"),
+        ("built-up fraction of cell (0 to 1)", "land fraction of 3x3 cell neighbourhood (0 to 1)"),
+    ):
+        for region, c in zip(sorted(out.region.unique()), ("#4c72b0", "#c44e52")):
+            s = out[out.region == region]
+            ax.scatter(s[col], s.era5land_bias, s=34, color=c, label=LABEL[region], alpha=0.85)
+        ax.axhline(0.0, color="k", lw=0.8)
+        ax.set_xlabel(xl)
+        ax.grid(alpha=0.3)
+    axes[0].set_ylabel("ERA5-Land bias against station (C)")
+    axes[0].legend(fontsize=9)
+    fig.tight_layout()
+    fig.savefig(fdir / "station_bias_drivers.png", dpi=150)
+    plt.close(fig)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--name", default="unet_main")
     p.add_argument("--batch", type=int, default=24)
+    p.add_argument("--drivers", action="store_true")
     a = p.parse_args()
     cfg = load_config()
+    if a.drivers:
+        rep = ROOT / cfg["paths"]["reports"]
+        fdir = rep / "figures"
+        fdir.mkdir(parents=True, exist_ok=True)
+        report_drivers(drivers(a.name), fdir)
+        return
     rep = ROOT / cfg["paths"]["reports"]
     rep.mkdir(parents=True, exist_ok=True)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
