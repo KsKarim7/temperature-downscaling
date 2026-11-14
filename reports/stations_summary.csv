@@ -1,8 +1,8 @@
 region,label,method,stations,median_rmse,mean_bias
-bangladesh,Bangladesh region,bilinear,39,1.6913,0.7092
-bangladesh,Bangladesh region,era5land,39,1.4965,0.2365
-bangladesh,Bangladesh region,lgbm,39,1.474,0.1687
-bangladesh,Bangladesh region,unet_main,39,1.4665,0.1043
+bangladesh,Bangladesh region,bilinear,38,1.6887,0.5874
+bangladesh,Bangladesh region,era5land,38,1.4951,0.1142
+bangladesh,Bangladesh region,lgbm,38,1.4735,0.0467
+bangladesh,Bangladesh region,unet_main,38,1.4566,-0.0125
 uae,UAE region,bilinear,14,1.4242,-0.3395
 uae,UAE region,era5land,14,1.7516,-0.8118
 uae,UAE region,lgbm,14,1.7378,-0.7301

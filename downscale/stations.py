@@ -95,6 +95,26 @@ def cell_preds(region, cells, name, booster, lnames, model, names, norm, dev, ba
     return {k: np.concatenate(v) for k, v in out.items()}, time, elev
 
 
+EXCLUDE = {
+    "42423": "named Jorhat, a town at 26.75N 94.21E in eastern Assam, "
+    "but listed at 26.07N 90.17E, about 400 km west"
+}
+MAX_ELEV_MISMATCH = 500.0
+
+
+def bad_metadata(r, cell_elev, north, west, south, east):
+    if r.id in EXCLUDE:
+        return EXCLUDE[r.id]
+    if not (south <= r.latitude <= north and west <= r.longitude <= east):
+        return f"listed at {r.latitude:.4f}N {r.longitude:.4f}E, outside the region bbox"
+    if pd.notna(r.elevation) and abs(float(r.elevation) - cell_elev) > MAX_ELEV_MISMATCH:
+        return (
+            f"listed elevation {float(r.elevation):.0f} m against {cell_elev:.0f} m "
+            f"for its cell in the dem, a mismatch over {MAX_ELEV_MISMATCH:.0f} m"
+        )
+    return ""
+
+
 def score(pred, obs):
     d = pred - obs
     good = np.isfinite(d)
@@ -110,32 +130,49 @@ def run_region(region, name, booster, lnames, model, names, norm, dev, batch):
     meta = in_bbox(region)
     print(f"{region} {len(meta)} stations in bbox", flush=True)
     if meta.empty:
-        return [], 0
+        return [], []
 
     obs = station_hours(meta.id.to_numpy(), year)
     if obs.empty:
         print(f"{region} no hourly temperature returned")
-        return [], 0
+        return [], []
     hours = pd.date_range(f"{year}-01-01", f"{year}-12-31 23:00", freq="h")
     obs = obs.reindex(hours)
     cover = obs.notna().sum() / len(hours)
 
     ds = open_store(store_path(region))
     land = ds.land.values > 0.5
+    north, west, south, east = cfg["regions"][region]["bbox"]
     keep = []
+    dropped = []
     for _, r in meta.iterrows():
         if r.id not in obs.columns or cover[r.id] < MIN_COVER:
             continue
         i, j = nearest_cell(ds, r.latitude, r.longitude)
         if not land[i, j]:
             continue
+        why = bad_metadata(r, float(ds.elev.values[i, j]), north, west, south, east)
+        if why:
+            dropped.append(
+                {
+                    "region": region,
+                    "id": r.id,
+                    "name": station_name(r.id),
+                    "lat": round(float(r.latitude), 4),
+                    "lon": round(float(r.longitude), 4),
+                    "reason": why,
+                }
+            )
+            continue
         keep.append((r, i, j))
     ds.close()
+    for d in dropped:
+        print(f"{region} excluded {d['id']} {d['name']}: {d['reason']}", flush=True)
     print(f"{region} {len(keep)} stations with >={MIN_COVER:.0%} coverage on a land cell", flush=True)
     if len(keep) < MIN_STATIONS:
         print(f"{region} has fewer than {MIN_STATIONS} usable stations, treat its station numbers as anecdotal")
     if not keep:
-        return [], 0
+        return [], []
 
     cells = [(i, j) for _, i, j in keep]
     preds, time, elev = cell_preds(region, cells, name, booster, lnames, model, names, norm, dev, batch)
@@ -166,7 +203,7 @@ def run_region(region, name, booster, lnames, model, names, norm, dev, batch):
                     "bias": round(bi, 4),
                 }
             )
-    return rows, len(keep)
+    return rows, dropped
 
 
 def is_airport(name):
@@ -275,13 +312,18 @@ def main():
     lnames = booster.feature_name()
 
     rows = []
+    drops = []
     for region in region_list():
-        r, _ = run_region(region, a.name, booster, lnames, model, names, norm, dev, a.batch)
+        r, d = run_region(region, a.name, booster, lnames, model, names, norm, dev, a.batch)
         rows += r
+        drops += d
     if not rows:
         print("no usable stations in either region")
         return
 
+    pd.DataFrame(drops, columns=["region", "id", "name", "lat", "lon", "reason"]).to_csv(
+        rep / "stations_excluded.csv", index=False
+    )
     df = pd.DataFrame(rows)
     df.to_csv(rep / "stations.csv", index=False)
     g = (

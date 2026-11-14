@@ -12,4 +12,7 @@ val_day_fraction: 0.1
 seed: 7
 geohash_precision: 4
 paths: {raw: data/raw, processed: data/processed, outputs: outputs, reports: reports}
-agent_model: claude-sonnet-5-5
+agent:
+  provider: gemini
+  gemini: {base_url: "https://generativelanguage.googleapis.com/v1beta/openai/", model: "", key_env: GEMINI_API_KEY}
+  ollama: {base_url: "http://localhost:11434/v1", model: "qwen2.5:3b", key_env: ""}

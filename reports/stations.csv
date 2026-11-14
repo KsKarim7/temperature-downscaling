@@ -143,10 +143,6 @@ bangladesh,Bangladesh region,bilinear,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.
 bangladesh,Bangladesh region,lgbm,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.4652,1.0922,0.3428
 bangladesh,Bangladesh region,unet_main,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.3953,1.0242,0.2341
 bangladesh,Bangladesh region,era5land,42414,Chaparmukh,26.2,92.5167,64.0,59.9,4.1,8625,1.5148,1.0897,0.2549
-bangladesh,Bangladesh region,bilinear,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.8409,5.5079,5.339
-bangladesh,Bangladesh region,lgbm,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.263,4.9635,4.8014
-bangladesh,Bangladesh region,unet_main,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.0204,4.7265,4.5423
-bangladesh,Bangladesh region,era5land,42423,Jorhat / Lengrabhita,26.0667,90.1667,880.0,29.7,850.3,8621,5.3117,5.0375,4.8838
 bangladesh,Bangladesh region,bilinear,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.7516,1.4018,0.2192
 bangladesh,Bangladesh region,lgbm,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.5871,1.2476,-0.112
 bangladesh,Bangladesh region,unet_main,42503,Malda,25.0333,88.1333,26.0,27.3,-1.3,8652,1.588,1.2361,-0.1947
