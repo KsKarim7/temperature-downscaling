@@ -166,6 +166,57 @@ def test_every_property_is_a_flat_scalar():
             assert set(v) <= {"type", "description", "enum"}
 
 
+def test_client_gets_the_value_of_the_named_env_var(monkeypatch):
+    from downscale.agent import client_for
+    from downscale.config import load_config
+
+    name = load_config()["agent"]["gemini"]["key_env"]
+    monkeypatch.setenv(name, "test-key-abcdef")
+    monkeypatch.setenv("OPENAI_API_KEY", "wrong-key-should-not-be-used")
+    client, c = client_for("gemini")
+    assert c["key_env"] == name
+    assert client.api_key == "test-key-abcdef"
+    assert client.auth_headers["Authorization"] == "Bearer test-key-abcdef"
+
+
+def test_client_uses_base_url_from_config(monkeypatch):
+    from downscale.agent import client_for
+    from downscale.config import load_config
+
+    cfg = load_config()["agent"]["gemini"]
+    monkeypatch.setenv(cfg["key_env"], "test-key-abcdef")
+    client, _ = client_for("gemini")
+    assert str(client.base_url).rstrip("/") == cfg["base_url"].rstrip("/")
+
+
+def test_missing_key_exits_before_any_request(monkeypatch):
+    import pytest
+
+    from downscale.agent import client_for
+    from downscale.config import load_config
+
+    monkeypatch.delenv(load_config()["agent"]["gemini"]["key_env"], raising=False)
+    with pytest.raises(SystemExit):
+        client_for("gemini")
+
+
+def test_key_is_stripped_of_quotes_and_whitespace(monkeypatch):
+    from downscale.agent import read_key
+
+    for raw in (' abc123 ', '"abc123"', "'abc123'", 'abc123\n', '  "abc123"  '):
+        monkeypatch.setenv("SOME_KEY_ENV", raw)
+        assert read_key("SOME_KEY_ENV") == "abc123"
+
+
+def test_ollama_needs_no_key(monkeypatch):
+    from downscale.agent import client_for
+
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    client, c = client_for("ollama")
+    assert c["key_env"] == ""
+    assert client.api_key
+
+
 def test_read_csv_refuses_parent_paths():
     for bad in ("../config.yaml", "..\\config.yaml", "../../secrets.csv", ".git/config"):
         out = read_csv(bad)

@@ -268,15 +268,23 @@ def guardrail(report_text, seen):
     return traced, untraced, misused
 
 
+def read_key(key_env):
+    if not key_env:
+        return "ollama"
+    return os.environ.get(key_env, "").strip().strip("\"'").strip()
+
+
 def client_for(provider):
     cfg = load_config()["agent"]
     c = cfg[provider]
-    key = os.environ.get(c["key_env"], "") if c["key_env"] else "ollama"
+    key = read_key(c["key_env"])
     if c["key_env"] and not key:
         raise SystemExit(
             f'set {c["key_env"]} for this session with: $env:{c["key_env"]}="your-key-here"'
         )
-    return OpenAI(base_url=c["base_url"], api_key=key or "none"), c
+    if c["key_env"]:
+        print(f"{c['key_env']} {len(key)} chars, starts {key[:4]}", flush=True)
+    return OpenAI(base_url=c["base_url"], api_key=key), c
 
 
 SKIP = (
