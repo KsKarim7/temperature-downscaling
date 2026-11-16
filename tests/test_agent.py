@@ -1,4 +1,5 @@
 import json
+import os
 
 from downscale.agent import (
     FUNCS,
@@ -215,6 +216,103 @@ def test_ollama_needs_no_key(monkeypatch):
     client, c = client_for("ollama")
     assert c["key_env"] == ""
     assert client.api_key
+
+
+def build(tmp_path, metric_time, store_time, src_time):
+    from downscale.agent import METRICS
+
+    rep = tmp_path / "reports"
+    out = tmp_path / "outputs" / "uae"
+    rep.mkdir(parents=True)
+    out.mkdir(parents=True)
+    src = tmp_path / "evaluate.py"
+    src.write_text("x", encoding="utf-8")
+    os.utime(src, (src_time, src_time))
+    store = out / "pred_unet_main.zarr"
+    store.mkdir()
+    (store / ".zmetadata").write_text("{}", encoding="utf-8")
+    os.utime(store / ".zmetadata", (store_time, store_time))
+    os.utime(store, (store_time, store_time))
+    for n in METRICS:
+        f = rep / n
+        f.write_text("a,b\n1,2\n", encoding="utf-8")
+        os.utime(f, (metric_time, metric_time))
+    return rep, tmp_path / "outputs", src
+
+
+def test_eval_fresh_when_metrics_are_newest(tmp_path):
+    from downscale.agent import METRICS, eval_fresh
+
+    rep, out, src = build(tmp_path, 3000, 2000, 1000)
+    fresh, files = eval_fresh(rep, out, src)
+    assert fresh is True
+    assert files == list(METRICS)
+
+
+def test_eval_stale_when_a_store_is_newer(tmp_path):
+    from downscale.agent import eval_fresh
+
+    rep, out, src = build(tmp_path, 2000, 3000, 1000)
+    assert eval_fresh(rep, out, src)[0] is False
+
+
+def test_eval_stale_when_the_source_is_newer(tmp_path):
+    from downscale.agent import eval_fresh
+
+    rep, out, src = build(tmp_path, 2000, 1000, 3000)
+    assert eval_fresh(rep, out, src)[0] is False
+
+
+def test_eval_stale_when_a_metric_file_is_missing(tmp_path):
+    from downscale.agent import METRICS, eval_fresh
+
+    rep, out, src = build(tmp_path, 3000, 2000, 1000)
+    (rep / METRICS[-1]).unlink()
+    assert eval_fresh(rep, out, src) == (False, [])
+
+
+def test_eval_stale_when_only_one_metric_is_old(tmp_path):
+    from downscale.agent import METRICS, eval_fresh
+
+    rep, out, src = build(tmp_path, 3000, 2000, 1000)
+    os.utime(rep / METRICS[2], (1500, 1500))
+    assert eval_fresh(rep, out, src)[0] is False
+
+
+def test_eval_fresh_with_no_prediction_stores(tmp_path):
+    from downscale.agent import eval_fresh
+
+    rep, out, src = build(tmp_path, 3000, 2000, 1000)
+    for p in (out / "uae").glob("pred_*.zarr"):
+        (p / ".zmetadata").unlink()
+        p.rmdir()
+    assert eval_fresh(rep, out, src)[0] is True
+
+
+def test_eval_uses_inner_zmetadata_mtime(tmp_path):
+    from downscale.agent import eval_fresh
+
+    rep, out, src = build(tmp_path, 2500, 2000, 1000)
+    z = out / "uae" / "pred_unet_main.zarr" / ".zmetadata"
+    os.utime(z, (4000, 4000))
+    assert eval_fresh(rep, out, src)[0] is False
+
+
+def test_force_eval_flag_exists():
+    import argparse
+    import inspect
+
+    import downscale.agent as agent
+
+    assert "--force-eval" in inspect.getsource(agent.main)
+    assert agent.FORCE_EVAL is False
+
+
+def test_waits_are_five_increasing_steps():
+    from downscale.agent import WAITS
+
+    assert WAITS == [30, 60, 120, 180, 300]
+    assert WAITS == sorted(WAITS)
 
 
 def test_tables_get_a_separator_row():

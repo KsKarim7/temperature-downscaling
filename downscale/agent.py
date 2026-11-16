@@ -66,7 +66,7 @@ covering the evaluation when get_run_info shows it covers both years. Plain word
 bold, short paragraphs.
 """
 
-WAITS = [30, 60, 120]
+WAITS = [30, 60, 120, 180, 300]
 REGIONS = ("uae", "bangladesh")
 
 
@@ -133,7 +133,39 @@ def read_csv(name, max_rows=60):
     return {"name": name, "rows": len(lines) - 1, "text": "\n".join(lines[: max_rows + 1])}
 
 
+METRICS = (
+    "metrics_overall.csv",
+    "metrics_by_hour.csv",
+    "metrics_by_month.csv",
+    "metrics_by_landcover.csv",
+    "metrics_by_geohash.csv",
+)
+FORCE_EVAL = False
+
+
+def store_mtime(p):
+    m = p.stat().st_mtime
+    z = p / ".zmetadata"
+    return max(m, z.stat().st_mtime) if z.exists() else m
+
+
+def eval_fresh(rep, out_dir, src):
+    files = [rep / n for n in METRICS]
+    if not all(f.exists() for f in files):
+        return False, []
+    deps = [store_mtime(s) for s in sorted(out_dir.glob("*/pred_*.zarr"))]
+    if src.exists():
+        deps.append(src.stat().st_mtime)
+    oldest = min(f.stat().st_mtime for f in files)
+    return oldest > max(deps, default=0.0), [f.name for f in files]
+
+
 def run_evaluation():
+    cfg = load_config()
+    rep = ROOT / cfg["paths"]["reports"]
+    fresh, files = eval_fresh(rep, ROOT / cfg["paths"]["outputs"], ROOT / "downscale" / "evaluate.py")
+    if fresh and not FORCE_EVAL:
+        return {"ok": True, "output": "evaluation up to date, using existing reports", "files": files}
     r = subprocess.run(
         [sys.executable, "-m", "downscale.evaluate"],
         cwd=ROOT,
@@ -381,7 +413,9 @@ def call(client, model, messages, tries=WAITS):
                 show(e)
                 raise SystemExit(1)
             if w is None:
-                raise SystemExit("endpoint still busy or rate limited after three retries, try again later")
+                raise SystemExit(
+                    f"endpoint still busy or rate limited after {len(WAITS)} retries, try again later"
+                )
             print(f"endpoint busy, waiting {w}s", flush=True)
             time.sleep(w)
 
@@ -461,10 +495,13 @@ def main():
     p.add_argument("--checks-only", action="store_true")
     p.add_argument("--list-models", action="store_true")
     p.add_argument("--probe", action="store_true")
+    p.add_argument("--force-eval", action="store_true")
     p.add_argument("--turns", type=int, default=15)
     a = p.parse_args()
     cfg = load_config()["agent"]
     provider = a.provider or cfg["provider"]
+    global FORCE_EVAL
+    FORCE_EVAL = a.force_eval
 
     if a.checks_only:
         bad = 0
