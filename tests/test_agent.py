@@ -108,6 +108,64 @@ def test_required_args_match_the_functions():
             assert k in sig.parameters
 
 
+REJECTED = (
+    "additionalProperties",
+    "default",
+    "$schema",
+    "$ref",
+    "$defs",
+    "title",
+    "examples",
+    "const",
+    "oneOf",
+    "allOf",
+    "patternProperties",
+)
+
+
+def walk(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            yield k
+            yield from walk(v)
+    elif isinstance(o, list):
+        for v in o:
+            yield from walk(v)
+
+
+def test_no_rejected_schema_keywords():
+    keys = set(walk(TOOLS))
+    assert not keys & set(REJECTED), f"gemini rejects these schema keywords: {sorted(keys & set(REJECTED))}"
+
+
+def test_schemas_serialise_without_rejected_text():
+    blob = json.dumps(TOOLS)
+    for k in REJECTED:
+        assert f'"{k}"' not in blob
+
+
+def test_no_empty_required_list():
+    for t in TOOLS:
+        p = t["function"]["parameters"]
+        assert "required" not in p or len(p["required"]) > 0
+
+
+def test_no_arg_tools_all_share_one_form():
+    forms = {
+        t["function"]["name"]: t["function"]["parameters"]
+        for t in TOOLS
+        if not t["function"]["parameters"].get("properties")
+    }
+    assert set(forms) == {"get_run_info", "list_reports", "run_evaluation"}
+    assert all(f == {"type": "object", "properties": {}} for f in forms.values())
+
+
+def test_every_property_is_a_flat_scalar():
+    for t in TOOLS:
+        for v in t["function"]["parameters"]["properties"].values():
+            assert set(v) <= {"type", "description", "enum"}
+
+
 def test_read_csv_refuses_parent_paths():
     for bad in ("../config.yaml", "..\\config.yaml", "../../secrets.csv", ".git/config"):
         out = read_csv(bad)

@@ -318,6 +318,13 @@ def busy(e):
     return "429" in s or "503" in s or "rate" in s or "overloaded" in s or "unavailable" in s
 
 
+def show(e):
+    code = getattr(e, "status_code", None) or getattr(getattr(e, "response", None), "status_code", "?")
+    body = getattr(getattr(e, "response", None), "text", "") or str(e)
+    print(f"api error http {code}", flush=True)
+    print(body.strip()[:1200], flush=True)
+
+
 def call(client, model, messages, tries=WAITS):
     for w in list(tries) + [None]:
         try:
@@ -326,11 +333,42 @@ def call(client, model, messages, tries=WAITS):
             )
         except Exception as e:
             if not busy(e):
-                raise
+                show(e)
+                raise SystemExit(1)
             if w is None:
                 raise SystemExit("endpoint still busy or rate limited after three retries, try again later")
             print(f"endpoint busy, waiting {w}s", flush=True)
             time.sleep(w)
+
+
+def probe(provider):
+    client, c = client_for(provider)
+    model = pick_model(client, c)
+    u = [{"role": "user", "content": "reply with ok"}]
+    s = [{"role": "system", "content": SYSTEM}] + u
+    cases = [
+        ("user only, no tools", u, None),
+        ("system only, no tools", s, None),
+        ("user plus tools", u, TOOLS),
+        ("system plus tools", s, TOOLS),
+    ]
+    for label, msgs, tools in cases:
+        kw = {"model": model, "messages": msgs}
+        if tools:
+            kw["tools"] = tools
+            kw["tool_choice"] = "auto"
+        try:
+            client.chat.completions.create(**kw)
+            print(f"ok    {label}")
+        except Exception as e:
+            code = getattr(e, "status_code", "?")
+            print(f"fail  {label}  http {code}  {str(e)[:200]}")
+    for t in TOOLS:
+        try:
+            client.chat.completions.create(model=model, messages=u, tools=[t], tool_choice="auto")
+            print(f"ok    tool {t['function']['name']}")
+        except Exception as e:
+            print(f"fail  tool {t['function']['name']}  {str(e)[:200]}")
 
 
 def run(provider, turns):
@@ -377,6 +415,7 @@ def main():
     p.add_argument("--provider", default=None, choices=["gemini", "ollama"])
     p.add_argument("--checks-only", action="store_true")
     p.add_argument("--list-models", action="store_true")
+    p.add_argument("--probe", action="store_true")
     p.add_argument("--turns", type=int, default=15)
     a = p.parse_args()
     cfg = load_config()["agent"]
@@ -394,6 +433,10 @@ def main():
         client, c = client_for(provider)
         for m in client.models.list():
             print(m.id)
+        return
+
+    if a.probe:
+        probe(provider)
         return
 
     run(provider, a.turns)
