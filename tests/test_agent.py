@@ -1,6 +1,79 @@
 import json
 
-from downscale.agent import FUNCS, TOOLS, numbers_in, read_csv, trace
+from downscale.agent import (
+    FUNCS,
+    TOOLS,
+    choose,
+    get_run_info,
+    misused_both_years,
+    numbers_in,
+    read_csv,
+    trace,
+)
+
+FAKE = [
+    "models/gemini-3.5-flash",
+    "models/gemini-3.5-flash-lite",
+    "models/gemini-3.5-flash-preview-09-2026",
+    "models/gemini-3.5-flash-image",
+    "models/gemini-3.5-flash-live-001",
+    "models/gemini-2.0-flash",
+    "models/gemini-3.5-pro",
+    "models/text-embedding-004",
+    "models/gemini-robotics-er-1.5-flash",
+    "models/gemini-2.5-flash-tts",
+]
+
+
+def test_choose_prefers_plain_flash():
+    assert choose(FAKE) == "gemini-3.5-flash"
+
+
+def test_choose_rejects_every_skipped_kind():
+    for bad in ("preview", "image", "live", "embedding", "robotics", "tts", "lite", "pro"):
+        assert bad not in choose(FAKE)
+
+
+def test_choose_falls_back_to_lite_when_only_lite():
+    assert choose(["models/gemini-3.5-flash-lite"]) == "gemini-3.5-flash-lite"
+
+
+def test_choose_takes_newest_plain_version():
+    assert choose(["models/gemini-2.0-flash", "models/gemini-3.5-flash"]) == "gemini-3.5-flash"
+
+
+def test_choose_empty_when_nothing_suitable():
+    assert choose(["models/gemini-3.5-pro", "models/text-embedding-004"]) == ""
+
+
+def test_run_info_has_the_context_fields():
+    info = get_run_info()
+    assert info["train_year"] == 2023 and info["test_year"] == 2024
+    for region, r in info["regions"].items():
+        assert r["hours_in_test_year"] == 8784
+        assert r["hours_in_store_both_years"] == 17544
+        assert r["test_block_cells"] > 0 and r["val_block_cells"] > 0
+        assert region.split("_")[0][:3].lower() in r["label"].lower() or "region" in r["label"]
+
+
+def test_run_info_labels_name_what_the_box_covers():
+    info = get_run_info()
+    assert "Oman" in info["regions"]["uae"]["label"]
+    assert "Kolkata" in info["regions"]["bangladesh"]["label"]
+
+
+def test_both_years_number_flagged_without_the_words():
+    bad = "Data checks passed with 17544 total hours evaluated."
+    assert misused_both_years(bad)
+
+
+def test_both_years_number_allowed_with_the_words():
+    ok = "The store holds 17544 hours across both years; the evaluation covers 8784."
+    assert misused_both_years(ok) == []
+
+
+def test_both_years_rule_ignores_other_numbers():
+    assert misused_both_years("The evaluation covers 8784 hours of 2024.") == []
 
 
 def test_every_tool_has_a_function():
