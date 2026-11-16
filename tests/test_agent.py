@@ -217,6 +217,78 @@ def test_ollama_needs_no_key(monkeypatch):
     assert client.api_key
 
 
+def test_tables_get_a_separator_row():
+    from downscale.agent import fix_tables
+
+    md = "## UAE region\n\n| method | rmse_c |\n| bilinear | 1.1883 |\n| lgbm | 0.8277 |\n"
+    out = fix_tables(md).splitlines()
+    assert out[2] == "| method | rmse_c |"
+    assert out[3] == "| --- | --- |"
+    assert out[4] == "| bilinear | 1.1883 |"
+
+
+def test_existing_separator_is_left_alone():
+    from downscale.agent import fix_tables
+
+    md = "| a | b |\n|---|---|\n| 1 | 2 |\n"
+    assert fix_tables(md) == md
+
+
+def test_fix_tables_is_idempotent():
+    from downscale.agent import fix_tables
+
+    md = "| a | b | c |\n| 1 | 2 | 3 |\n"
+    once = fix_tables(md)
+    assert fix_tables(once) == once
+    assert once.splitlines()[1].count("---") == 3
+
+
+def test_fix_tables_matches_column_count():
+    from downscale.agent import fix_tables
+
+    md = "| method | rmse_c | mae_c | bias_c | skill |\n| lgbm | 0.8277 | 0.6263 | 0.0564 | 0.3035 |\n"
+    assert fix_tables(md).splitlines()[1] == "| --- | --- | --- | --- | --- |"
+
+
+def test_fix_tables_handles_two_tables():
+    from downscale.agent import fix_tables
+
+    md = "| a | b |\n| 1 | 2 |\n\ntext\n\n| c | d |\n| 3 | 4 |\n"
+    out = fix_tables(md).splitlines()
+    assert out[1] == "| --- | --- |"
+    assert out[7] == "| --- | --- |"
+    assert out.count("| --- | --- |") == 2
+
+
+def test_fix_tables_leaves_prose_alone():
+    from downscale.agent import fix_tables
+
+    md = "The U-Net reached 0.7815 c.\n\n- a bullet\n- another\n"
+    assert fix_tables(md) == md
+
+
+def test_write_report_writes_the_fixed_table(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    agent.write_report("| method | rmse_c |\n| lgbm | 0.8277 |\n")
+    assert "| --- | --- |" in (tmp_path / "agent_report.md").read_text(encoding="utf-8")
+
+
+def test_prompt_never_claims_a_bound():
+    from downscale.agent import SYSTEM
+
+    low = SYSTEM.lower()
+    assert "bounds what" not in low
+    assert "representativeness" in low
+    assert "kaggle_runs.csv" in low
+
+
+def test_read_csv_can_read_kaggle_runs():
+    out = read_csv("kaggle_runs.csv")
+    assert "text" in out and "best_val_rmse_c" in out["text"]
+
+
 def test_read_csv_refuses_parent_paths():
     for bad in ("../config.yaml", "..\\config.yaml", "../../secrets.csv", ".git/config"):
         out = read_csv(bad)

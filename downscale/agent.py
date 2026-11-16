@@ -25,9 +25,14 @@ Work in this order.
 2. Call check_data for every region. If any check fails, call write_report with a short failure
    report naming the failed checks, and stop.
 3. Call run_evaluation once.
-4. Read metrics_overall.csv, metrics_by_hour.csv, stations_summary.csv and
-   stations_bias_drivers.csv with read_csv.
+4. Read metrics_overall.csv, metrics_by_hour.csv, stations_summary.csv,
+   stations_bias_drivers.csv and kaggle_runs.csv with read_csv.
 5. Call write_report. Under 400 words, markdown, in these sections.
+
+Call the two regions "UAE region" and "Bangladesh region" in every heading and sentence.
+
+Setup: one short line. Say what each region box also covers, from get_run_info, and name any
+station get_run_info lists as excluded, with its reason in a few words.
 
 Data: one or two sentences. Say which year the evaluation covers and how many hours that is.
 
@@ -40,13 +45,20 @@ Hours: the worst local hours for unet_main in each region, then one sentence not
 regions degrade at different times of day.
 
 Stations: the stations are the observations, the thing being predicted. The era5land row is not a
-reference method, it is how the training target itself scores against those observations, which
-bounds what any model trained on it can do. Say that plainly. Report the cold bias that era5land
-and the models share in the UAE region.
+reference method and it is not a bound. It is how the training target itself scores against those
+observations. A model trained on that target can land slightly above or below it, because part of
+the station error is representativeness: a station is a point and a cell is about 10 km across.
+Never say any row bounds or limits what a model can achieve. Cover both regions: the number of
+stations, and median_rmse and mean_bias for era5land, lgbm and unet_main. Then state that in the
+UAE region era5land and the models share a cold bias, quoting the mean_bias numbers.
 
-Caveats: at most four bullets, every one about something a tool actually returned, such as a
-station count, an excluded station, a region box covering more than its name, or a gap you saw.
-No generic machine learning caveats.
+Caveats: at most four bullets, drawn only from this list, each quoting the numbers it needs.
+- The test_blocks margin between unet_main and lgbm, set against run to run noise: kaggle_runs.csv
+  has two runs of the same configuration, so quote both best_val_rmse_c values as the noise level.
+- One block partition and one split seed, so these are a single draw, not a distribution.
+- ERA5-Land is a model product, not observations, so agreement with it is not accuracy.
+- The UAE region station cold bias is inherited from the training target.
+Nothing about region boxes or excluded stations here; those belong in Setup.
 
 Use only numbers a tool returned, written exactly at the precision the tool gave. Never calculate
 or estimate a number. If you want one no tool gave you, leave it out. Do not describe a number as
@@ -132,10 +144,35 @@ def run_evaluation():
     return {"ok": r.returncode == 0, "output": "\n".join(tail), "error": (r.stderr or "").strip()[-500:]}
 
 
+SEP = re.compile(r"^\s*\|?(\s*:?-+:?\s*\|)+\s*:?-*:?\s*\|?\s*$")
+
+
+def is_row(line):
+    s = line.strip()
+    return s.startswith("|") and s.count("|") >= 2
+
+
+def fix_tables(markdown):
+    lines = markdown.splitlines()
+    out = []
+    for i, line in enumerate(lines):
+        out.append(line)
+        if not is_row(line) or (i and is_row(lines[i - 1])):
+            continue
+        nxt = lines[i + 1] if i + 1 < len(lines) else ""
+        if SEP.match(nxt):
+            continue
+        n = len(line.strip().strip("|").split("|"))
+        out.append("|" + "|".join([" --- "] * n) + "|")
+    text = "\n".join(out)
+    return text + "\n" if markdown.endswith("\n") else text
+
+
 def write_report(markdown):
+    md = fix_tables(markdown)
     p = reports_dir() / "agent_report.md"
-    p.write_text(markdown, encoding="utf-8")
-    return {"written": str(p.relative_to(ROOT)), "words": len(markdown.split())}
+    p.write_text(md, encoding="utf-8")
+    return {"written": f"{p.parent.name}/{p.name}", "words": len(md.split())}
 
 
 TOOLS = [
@@ -401,7 +438,7 @@ def run(provider, turns):
             if tc.function.name == "get_run_info":
                 seen.append(json.dumps(out, default=str))
             if tc.function.name == "write_report":
-                report_text = args.get("markdown", "")
+                report_text = fix_tables(args.get("markdown", ""))
             messages.append(
                 {"role": "tool", "tool_call_id": tc.id, "content": json.dumps(out, default=str)}
             )
