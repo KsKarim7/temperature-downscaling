@@ -1,0 +1,13 @@
+region,label,method,rank,local_hour,rmse_c,skill
+bangladesh,Bangladesh region,lgbm,1,12,1.1866,0.257
+bangladesh,Bangladesh region,lgbm,2,11,1.1714,0.2283
+bangladesh,Bangladesh region,lgbm,3,13,1.1458,0.2357
+bangladesh,Bangladesh region,unet_main,1,12,1.0538,0.3402
+bangladesh,Bangladesh region,unet_main,2,13,1.0525,0.2979
+bangladesh,Bangladesh region,unet_main,3,15,1.0486,0.3775
+uae,UAE region,lgbm,1,7,1.0669,0.475
+uae,UAE region,lgbm,2,8,1.0151,0.4112
+uae,UAE region,lgbm,3,6,0.9726,0.4533
+uae,UAE region,unet_main,1,8,1.0332,0.4007
+uae,UAE region,unet_main,2,7,1.0246,0.4958
+uae,UAE region,unet_main,3,6,0.9229,0.4813

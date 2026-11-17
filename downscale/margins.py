@@ -47,6 +47,29 @@ def main():
     df.to_csv(rep / "model_margins.csv", index=False)
     print(df.to_string(index=False))
 
+    h = pd.read_csv(rep / "metrics_by_hour.csv")
+    worst = []
+    for region in sorted(h.region.unique()):
+        for method in ("lgbm", "unet_main"):
+            s = h[(h.region == region) & (h.method == method)]
+            top = s.sort_values(["rmse_c", "local_hour"], ascending=[False, True]).head(3)
+            for k, (_, r) in enumerate(top.iterrows(), start=1):
+                worst.append(
+                    {
+                        "region": region,
+                        "label": LABEL[region],
+                        "method": method,
+                        "rank": k,
+                        "local_hour": int(r.local_hour),
+                        "rmse_c": round(float(r.rmse_c), 4),
+                        "skill": round(float(r.skill), 4),
+                    }
+                )
+    w = pd.DataFrame(worst)
+    w.to_csv(rep / "worst_hours.csv", index=False)
+    print()
+    print(w.to_string(index=False))
+
 
 if __name__ == "__main__":
     main()

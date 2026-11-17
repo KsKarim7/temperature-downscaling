@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import os
 import re
@@ -25,8 +26,10 @@ Work in this order.
 2. Call check_data for every region. If any check fails, call write_report with a short failure
    report naming the failed checks, and stop.
 3. Call run_evaluation once.
-4. Read metrics_overall.csv, metrics_by_hour.csv, model_margins.csv, stations_summary.csv,
-   stations_bias_drivers.csv and kaggle_runs.csv with read_csv.
+4. Read metrics_overall.csv, model_margins.csv, worst_hours.csv, stations_summary.csv,
+   stations_bias_drivers.csv and kaggle_runs.csv with read_csv. If a result ends with a line
+   starting "truncated", you have not seen every row: call read_csv again with a filter such as
+   {"region": "bangladesh", "method": "unet_main"} rather than guessing at the missing rows.
 5. Call write_report. Under 400 words, markdown, in these sections.
 
 Call the two regions "UAE region" and "Bangladesh region" in every heading and sentence.
@@ -42,8 +45,10 @@ generalises best to held-out blocks, and comparing the val to test_blocks gap fo
 unet_main. Take both gaps from the lgbm_val_to_test_gap_c and unet_main_val_to_test_gap_c columns
 of model_margins.csv, never by subtracting the table values yourself.
 
-Hours: the worst local hours for unet_main in each region, then one sentence noting that the two
-regions degrade at different times of day.
+Hours: take every number here from worst_hours.csv and nowhere else. For each region give the
+unet_main rows, quoting local_hour and rmse_c exactly as that file gives them. Then one sentence
+noting that the two regions degrade at different times of day. If a worst hour you want is not in
+worst_hours.csv, say so rather than supplying a number.
 
 Stations: the stations are the observations, the thing being predicted. The era5land row is not a
 reference method and it is not a bound. It is how the training target itself scores against those
@@ -127,7 +132,7 @@ def list_reports():
     return {"files": sorted(p.name for p in d.glob("*.csv"))}
 
 
-def read_csv(name, max_rows=60):
+def read_csv(name, max_rows=200, filter=None):
     if "/" in name or "\\" in name or name.startswith("."):
         return {"error": f"refused {name}, pass a plain file name inside reports/"}
     p = (reports_dir() / name).resolve()
@@ -135,8 +140,31 @@ def read_csv(name, max_rows=60):
         return {"error": f"refused {name}, outside reports/"}
     if not p.exists():
         return {"error": f"no such file {name}"}
+
     lines = p.read_text(encoding="utf-8").splitlines()
-    return {"name": name, "rows": len(lines) - 1, "text": "\n".join(lines[: max_rows + 1])}
+    head, rows = lines[0], [r for r in lines[1:] if r.strip()]
+    cols = next(csv.reader([head]))
+    total = len(rows)
+    if filter:
+        missing = [k for k in filter if k not in cols]
+        if missing:
+            return {"error": f"no column {missing[0]} in {name}, columns are {cols}"}
+        idx = {k: cols.index(k) for k in filter}
+        rows = [
+            r
+            for r in rows
+            for cells in [next(csv.reader([r]))]
+            if all(len(cells) > i and cells[i] == str(filter[k]) for k, i in idx.items())
+        ]
+
+    kept = len(rows)
+    text = "\n".join([head] + rows[:max_rows])
+    if kept > max_rows:
+        text += (
+            f"\ntruncated: showing {max_rows} of {kept} rows; "
+            "use the filter argument or a summary file"
+        )
+    return {"name": name, "rows": total, "matched": kept, "text": text}
 
 
 METRICS = (
@@ -269,6 +297,15 @@ TOOLS = [
                 "properties": {
                     "name": {"type": "string", "description": "file name inside reports/"},
                     "max_rows": {"type": "integer", "description": "how many data rows to return"},
+                    "filter": {
+                        "type": "object",
+                        "description": "keep only rows matching all of these columns",
+                        "properties": {
+                            "region": {"type": "string", "description": "uae or bangladesh"},
+                            "method": {"type": "string", "description": "bilinear, lgbm or unet_main"},
+                            "split": {"type": "string", "description": "val, test_blocks or all_land"},
+                        },
+                    },
                 },
                 "required": ["name"],
             },
@@ -505,6 +542,7 @@ def run(provider, turns):
     model = pick_model(client, c)
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": "Do the review."}]
     seen = []
+    done = {}
     report_text = ""
     for _ in range(turns):
         m = call(client, model, messages).choices[0].message
@@ -514,7 +552,12 @@ def run(provider, turns):
         for tc in m.tool_calls:
             args = json.loads(tc.function.arguments or "{}")
             print(f"tool {tc.function.name} {json.dumps(args)[:80]}", flush=True)
-            out = FUNCS[tc.function.name](**args)
+            key = (tc.function.name, json.dumps(args, sort_keys=True))
+            done[key] = done.get(key, 0) + 1
+            if tc.function.name == "read_csv" and done[key] > 2:
+                out = {"note": "already read; use filter or a summary file"}
+            else:
+                out = FUNCS[tc.function.name](**args)
             if tc.function.name == "read_csv" and "text" in out:
                 seen.append(out["text"])
             if tc.function.name == "check_data":

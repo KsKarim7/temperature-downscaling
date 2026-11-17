@@ -164,7 +164,11 @@ def test_no_arg_tools_all_share_one_form():
 def test_every_property_is_a_flat_scalar():
     for t in TOOLS:
         for v in t["function"]["parameters"]["properties"].values():
-            assert set(v) <= {"type", "description", "enum"}
+            assert set(v) <= {"type", "description", "enum", "properties"}
+            for inner in v.get("properties", {}).values():
+                assert set(inner) <= {"type", "description", "enum"}
+            if v["type"] == "object":
+                assert v.get("properties"), "gemini rejects an object with no declared properties"
 
 
 def test_client_gets_the_value_of_the_named_env_var(monkeypatch):
@@ -313,6 +317,88 @@ def test_waits_are_five_increasing_steps():
 
     assert WAITS == [30, 60, 120, 180, 300]
     assert WAITS == sorted(WAITS)
+
+
+def test_read_csv_truncation_is_explicit():
+    out = read_csv("metrics_by_hour.csv", max_rows=60)
+    last = out["text"].splitlines()[-1]
+    assert last.startswith("truncated: showing 60 of 144 rows")
+    assert "use the filter argument or a summary file" in last
+    assert out["rows"] == 144
+
+
+def test_read_csv_default_shows_every_hour_row():
+    out = read_csv("metrics_by_hour.csv")
+    assert "truncated" not in out["text"]
+    assert len(out["text"].splitlines()) == 145
+
+
+def test_read_csv_filter_reaches_the_rows_that_were_cut():
+    out = read_csv("metrics_by_hour.csv", filter={"region": "bangladesh", "method": "unet_main"})
+    assert out["matched"] == 24
+    assert "truncated" not in out["text"]
+    assert "bangladesh,Bangladesh region,unet_main,12," in out["text"]
+
+
+def test_read_csv_filter_all_conditions_must_match():
+    a = read_csv("metrics_by_hour.csv", filter={"region": "uae"})
+    b = read_csv("metrics_by_hour.csv", filter={"region": "uae", "method": "lgbm"})
+    assert a["matched"] == 72 and b["matched"] == 24
+
+
+def test_read_csv_filter_on_unknown_column():
+    out = read_csv("metrics_by_hour.csv", filter={"nope": "x"})
+    assert "error" in out and "no column nope" in out["error"]
+
+
+def test_read_csv_filter_with_no_matches():
+    out = read_csv("metrics_by_hour.csv", filter={"region": "atlantis"})
+    assert out["matched"] == 0
+    assert out["text"].splitlines() == [out["text"].splitlines()[0]]
+
+
+def test_read_csv_handles_quoted_commas():
+    out = read_csv("stations_excluded.csv", filter={"region": "bangladesh"})
+    assert out["matched"] == 1
+    assert "Jorhat" in out["text"]
+
+
+def test_worst_hours_recomputed_from_metrics_by_hour():
+    import pandas as pd
+
+    from downscale.config import ROOT, load_config
+
+    rep = ROOT / load_config()["paths"]["reports"]
+    w = pd.read_csv(rep / "worst_hours.csv")
+    h = pd.read_csv(rep / "metrics_by_hour.csv")
+    assert len(w) == 12
+    for region in h.region.unique():
+        for method in ("lgbm", "unet_main"):
+            s = h[(h.region == region) & (h.method == method)]
+            top = s.sort_values(["rmse_c", "local_hour"], ascending=[False, True]).head(3)
+            got = w[(w.region == region) & (w.method == method)].sort_values("rank")
+            assert list(got.local_hour) == list(top.local_hour)
+            assert list(got.rmse_c) == [round(float(x), 4) for x in top.rmse_c]
+            assert list(got["rank"]) == [1, 2, 3]
+
+
+def test_worst_hours_has_the_number_the_model_invented():
+    import pandas as pd
+
+    from downscale.config import ROOT, load_config
+
+    rep = ROOT / load_config()["paths"]["reports"]
+    w = pd.read_csv(rep / "worst_hours.csv")
+    bd = w[(w.region == "bangladesh") & (w.method == "unet_main") & (w["rank"] == 1)].iloc[0]
+    assert bd.local_hour == 12
+    assert bd.rmse_c == 1.0538
+
+
+def test_prompt_points_the_hours_section_at_worst_hours():
+    from downscale.agent import SYSTEM
+
+    assert "worst_hours.csv" in SYSTEM
+    assert "truncated" in SYSTEM
 
 
 def test_calc_returns_a_rounded_string():
@@ -502,8 +588,10 @@ def test_read_csv_refuses_absolute_path():
 def test_read_csv_reads_a_real_report():
     out = read_csv("metrics_overall.csv", max_rows=5)
     assert "text" in out
-    assert out["text"].splitlines()[0].startswith("region,")
-    assert len(out["text"].splitlines()) == 6
+    lines = out["text"].splitlines()
+    assert lines[0].startswith("region,")
+    assert len(lines) == 7
+    assert lines[-1].startswith("truncated: showing 5 of 18 rows")
 
 
 def test_read_csv_missing_file():
