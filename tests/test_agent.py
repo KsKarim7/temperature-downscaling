@@ -315,6 +315,107 @@ def test_waits_are_five_increasing_steps():
     assert WAITS == sorted(WAITS)
 
 
+def test_calc_returns_a_rounded_string():
+    from downscale.agent import calc
+
+    assert calc(0.8277, 0.6576, "sub")["result"] == "0.1701"
+    assert calc(0.7815, 0.7048, "sub")["result"] == "0.0767"
+    assert calc(1.0, 3.0, "div")["result"] == "0.3333"
+    assert calc(2.5, 4.0, "mul")["result"] == "10.0"
+    assert calc(1.5, 2.25, "add")["result"] == "3.75"
+
+
+def test_calc_rejects_unknown_op():
+    from downscale.agent import calc
+
+    assert "error" in calc(1.0, 2.0, "pow")
+
+
+def test_calc_div_by_zero_is_not_an_exception():
+    from downscale.agent import calc
+
+    assert calc(1.0, 0.0, "div")["result"] == "nan"
+
+
+def test_calc_result_traces():
+    from downscale.agent import calc, trace
+
+    r = calc(0.9437, 0.6483, "sub")["result"]
+    traced, untraced = trace(f"The gap is {r} C.", [r])
+    assert untraced == [] and r in traced
+
+
+def test_calc_is_registered_as_a_tool():
+    names = [t["function"]["name"] for t in TOOLS]
+    assert "calc" in names and "calc" in FUNCS
+
+
+def test_prompt_forbids_arithmetic():
+    from downscale.agent import SYSTEM
+
+    low = SYSTEM.lower()
+    assert "never do arithmetic yourself" in low
+    assert "model_margins.csv" in low
+
+
+def test_quarantine_renames_a_failed_report(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    (tmp_path / "agent_report.md").write_text("bad report", encoding="utf-8")
+    assert agent.quarantine() == "agent_report_failed.md"
+    assert not (tmp_path / "agent_report.md").exists()
+    assert (tmp_path / "agent_report_failed.md").read_text(encoding="utf-8") == "bad report"
+
+
+def test_quarantine_overwrites_an_older_failed_report(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    (tmp_path / "agent_report_failed.md").write_text("older", encoding="utf-8")
+    (tmp_path / "agent_report.md").write_text("newer", encoding="utf-8")
+    agent.quarantine()
+    assert (tmp_path / "agent_report_failed.md").read_text(encoding="utf-8") == "newer"
+
+
+def test_quarantine_with_no_report_is_harmless(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    assert agent.quarantine() == "agent_report_failed.md"
+    assert not (tmp_path / "agent_report_failed.md").exists()
+
+
+def test_margins_match_the_metrics_table():
+    import pandas as pd
+
+    from downscale.config import ROOT, load_config
+
+    rep = ROOT / load_config()["paths"]["reports"]
+    m = pd.read_csv(rep / "model_margins.csv")
+    o = pd.read_csv(rep / "metrics_overall.csv")
+    for _, r in m.iterrows():
+        def v(method, split):
+            s = o[(o.region == r.region) & (o.method == method) & (o.split == split)]
+            return round(float(s.rmse_c.iloc[0]), 4)
+
+        assert r.lgbm_val_to_test_gap_c == round(v("lgbm", "test_blocks") - v("lgbm", "val"), 4)
+        assert r.unet_main_val_to_test_gap_c == round(
+            v("unet_main", "test_blocks") - v("unet_main", "val"), 4
+        )
+        assert r.unet_minus_lgbm_test_blocks_c == round(
+            v("unet_main", "test_blocks") - v("lgbm", "test_blocks"), 4
+        )
+
+
+def test_margins_noise_from_two_runs():
+    from downscale.margins import noise
+    import pandas as pd
+
+    runs = pd.DataFrame({"best_val_rmse_c": [0.6667, 0.6623]})
+    assert noise(runs) == 0.0044
+
+
 def test_tables_get_a_separator_row():
     from downscale.agent import fix_tables
 

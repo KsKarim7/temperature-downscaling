@@ -1,0 +1,3 @@
+region,label,lgbm_val_rmse_c,lgbm_test_blocks_rmse_c,lgbm_val_to_test_gap_c,unet_main_val_rmse_c,unet_main_test_blocks_rmse_c,unet_main_val_to_test_gap_c,unet_minus_lgbm_test_blocks_c,run_to_run_noise_c,margin_over_noise
+bangladesh,Bangladesh region,0.6483,0.9437,0.2954,0.7355,0.9167,0.1812,-0.027,0.0044,-6.1364
+uae,UAE region,0.6576,0.8277,0.1701,0.7048,0.7815,0.0767,-0.0462,0.0044,-10.5

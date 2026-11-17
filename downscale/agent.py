@@ -25,7 +25,7 @@ Work in this order.
 2. Call check_data for every region. If any check fails, call write_report with a short failure
    report naming the failed checks, and stop.
 3. Call run_evaluation once.
-4. Read metrics_overall.csv, metrics_by_hour.csv, stations_summary.csv,
+4. Read metrics_overall.csv, metrics_by_hour.csv, model_margins.csv, stations_summary.csv,
    stations_bias_drivers.csv and kaggle_runs.csv with read_csv.
 5. Call write_report. Under 400 words, markdown, in these sections.
 
@@ -39,7 +39,8 @@ Data: one or two sentences. Say which year the evaluation covers and how many ho
 Results: a markdown table per region for the test_blocks split, columns method, rmse_c, mae_c,
 bias_c, skill, rows bilinear, lgbm and unet_main. Then two or three sentences saying which method
 generalises best to held-out blocks, and comparing the val to test_blocks gap for lgbm against
-unet_main. Quote both numbers for each gap you mention.
+unet_main. Take both gaps from the lgbm_val_to_test_gap_c and unet_main_val_to_test_gap_c columns
+of model_margins.csv, never by subtracting the table values yourself.
 
 Hours: the worst local hours for unet_main in each region, then one sentence noting that the two
 regions degrade at different times of day.
@@ -53,15 +54,20 @@ stations, and median_rmse and mean_bias for era5land, lgbm and unet_main. Then s
 UAE region era5land and the models share a cold bias, quoting the mean_bias numbers.
 
 Caveats: at most four bullets, drawn only from this list, each quoting the numbers it needs.
-- The test_blocks margin between unet_main and lgbm, set against run to run noise: kaggle_runs.csv
-  has two runs of the same configuration, so quote both best_val_rmse_c values as the noise level.
+- The test_blocks margin between unet_main and lgbm, set against run to run noise. Quote
+  unet_minus_lgbm_test_blocks_c, run_to_run_noise_c and margin_over_noise from model_margins.csv.
 - One block partition and one split seed, so these are a single draw, not a distribution.
 - ERA5-Land is a model product, not observations, so agreement with it is not accuracy.
 - The UAE region station cold bias is inherited from the training target.
 Nothing about region boxes or excluded stations here; those belong in Setup.
 
-Use only numbers a tool returned, written exactly at the precision the tool gave. Never calculate
-or estimate a number. If you want one no tool gave you, leave it out. Do not describe a number as
+Never do arithmetic yourself. Do not subtract, add, average or round anything in your head, not
+even a difference between two numbers in the same table. Every gap, margin and noise figure is
+already computed in model_margins.csv: read it and quote its columns. For anything else, call calc
+and quote its result string. A number you worked out yourself will be rejected even if it is right.
+
+Use only numbers a tool returned, written exactly at the precision the tool gave. Never estimate a
+number. If you want one no tool gave you, leave it out. Do not describe a number as
 covering the evaluation when get_run_info shows it covers both years. Plain wording, no emoji, no
 bold, short paragraphs.
 """
@@ -176,6 +182,20 @@ def run_evaluation():
     return {"ok": r.returncode == 0, "output": "\n".join(tail), "error": (r.stderr or "").strip()[-500:]}
 
 
+OPS = {
+    "sub": lambda a, b: a - b,
+    "add": lambda a, b: a + b,
+    "mul": lambda a, b: a * b,
+    "div": lambda a, b: a / b if b else float("nan"),
+}
+
+
+def calc(a, b, op):
+    if op not in OPS:
+        return {"error": f"unknown op {op}, use one of sub, add, mul, div"}
+    return {"a": a, "b": b, "op": op, "result": f"{round(OPS[op](float(a), float(b)), 4)}"}
+
+
 SEP = re.compile(r"^\s*\|?(\s*:?-+:?\s*\|)+\s*:?-*:?\s*\|?\s*$")
 
 
@@ -257,6 +277,26 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "calc",
+            "description": "Arithmetic on two numbers. Use this instead of working anything out yourself.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "number", "description": "first number"},
+                    "b": {"type": "number", "description": "second number"},
+                    "op": {
+                        "type": "string",
+                        "enum": ["sub", "add", "mul", "div"],
+                        "description": "operation to apply as a op b",
+                    },
+                },
+                "required": ["a", "b", "op"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "run_evaluation",
             "description": "Run the evaluation and rewrite the metrics CSVs.",
             "parameters": {"type": "object", "properties": {}},
@@ -281,6 +321,7 @@ FUNCS = {
     "check_data": check_data,
     "list_reports": list_reports,
     "read_csv": read_csv,
+    "calc": calc,
     "run_evaluation": run_evaluation,
     "write_report": write_report,
 }
@@ -319,6 +360,15 @@ def misused_both_years(report):
         if BOTH_YEARS_NEEDS not in report[a : m.end() + 90].lower():
             out.append(report[a : m.end() + 90].strip())
     return out
+
+
+def quarantine():
+    src = reports_dir() / "agent_report.md"
+    dst = reports_dir() / "agent_report_failed.md"
+    if src.exists():
+        dst.unlink(missing_ok=True)
+        src.rename(dst)
+    return dst.name
 
 
 def guardrail(report_text, seen):
@@ -471,6 +521,8 @@ def run(provider, turns):
                 seen.append(json.dumps(out["detail"]))
             if tc.function.name == "get_run_info":
                 seen.append(json.dumps(out, default=str))
+            if tc.function.name == "calc" and "result" in out:
+                seen.append(out["result"])
             if tc.function.name == "write_report":
                 report_text = fix_tables(args.get("markdown", ""))
             messages.append(
@@ -485,6 +537,7 @@ def run(provider, turns):
     for s in misused:
         print(f"{BOTH_YEARS} used without '{BOTH_YEARS_NEEDS}': ...{s}...")
     if untraced or misused:
+        print(f"report kept as {quarantine()} so a failed report is not left in place")
         raise SystemExit(1)
     print("every number in the report traces to a csv the agent read")
 
