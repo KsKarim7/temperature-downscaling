@@ -52,6 +52,3 @@ def time_feats(times, utc_offset):
 def static_feats(ds, names):
     return {c: ds[c].values.astype("float32") for c in names if c in ds}
 
-
-def residual(t_land, t_coarse):
-    return t_land - t_coarse

@@ -1,6 +1,10 @@
 import json
 import os
 
+import pytest
+
+from downscale.config import ROOT, load_config
+from downscale.data import region_list
 from downscale.agent import (
     FUNCS,
     TOOLS,
@@ -11,6 +15,14 @@ from downscale.agent import (
     read_csv,
     trace,
 )
+
+def has_data():
+    out = ROOT / load_config()["paths"]["outputs"]
+    regions = region_list()
+    return bool(regions) and all((out / r / "splits.npz").exists() for r in regions)
+
+
+needs_data = pytest.mark.skipif(not has_data(), reason="needs the processed stores and splits")
 
 FAKE = [
     "models/gemini-3.5-flash",
@@ -47,16 +59,23 @@ def test_choose_empty_when_nothing_suitable():
     assert choose(["models/gemini-3.5-pro", "models/text-embedding-004"]) == ""
 
 
-def test_run_info_has_the_context_fields():
+def test_run_info_reads_the_config_without_local_data():
     info = get_run_info()
     assert info["train_year"] == 2023 and info["test_year"] == 2024
-    for region, r in info["regions"].items():
+
+
+@needs_data
+def test_run_info_has_the_context_fields():
+    info = get_run_info()
+    assert set(info["regions"]) == {"uae", "bangladesh"}
+    for r in info["regions"].values():
         assert r["hours_in_test_year"] == 8784
         assert r["hours_in_store_both_years"] == 17544
         assert r["test_block_cells"] > 0 and r["val_block_cells"] > 0
-        assert region.split("_")[0][:3].lower() in r["label"].lower() or "region" in r["label"]
+        assert "region" in r["label"]
 
 
+@needs_data
 def test_run_info_labels_name_what_the_box_covers():
     info = get_run_info()
     assert "Oman" in info["regions"]["uae"]["label"]
@@ -303,7 +322,6 @@ def test_eval_uses_inner_zmetadata_mtime(tmp_path):
 
 
 def test_force_eval_flag_exists():
-    import argparse
     import inspect
 
     import downscale.agent as agent

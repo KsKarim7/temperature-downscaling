@@ -621,6 +621,8 @@ def main():
 
     if a.checks_only:
         bad = 0
+        if not region_list():
+            print("no processed regions found, run downscale.prepare first")
         for region in region_list():
             r = check_data(region)
             print(f"{region} {'ok' if r['passed'] else 'failed: ' + ', '.join(r['failed'])}")
