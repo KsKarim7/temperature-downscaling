@@ -256,6 +256,7 @@ def drivers(name):
 
 
 def report_drivers(out, fdir):
+    stats = []
     print("station counts are small, so read every number below as suggestive, not significant")
     for region in sorted(out.region.unique()):
         s = out[out.region == region]
@@ -265,12 +266,39 @@ def report_drivers(out, fdir):
             rho, p = spearmanr(v.era5land_bias, v[col])
             flag = "" if p < 0.05 else "  (not significant)"
             print(f"era5land_bias vs {col:14s} rho {rho:+.3f}  p {p:.3f}  n {len(v)}{flag}")
+            stats.append(
+                {
+                    "region": region,
+                    "label": LABEL[region],
+                    "kind": "spearman",
+                    "against": col,
+                    "rho": round(float(rho), 3),
+                    "p": round(float(p), 3),
+                    "n": len(v),
+                    "mean_bias": float("nan"),
+                }
+            )
         for a, b in ((s.airport, "airport"), (s.land_frac_3x3 < 0.7, "coastal")):
             g1 = s[a].era5land_bias
             g0 = s[~a].era5land_bias
             m1 = f"{g1.mean():+.3f} c" if len(g1) else "no stations"
             m0 = f"{g0.mean():+.3f} c" if len(g0) else "no stations"
             print(f"mean era5land_bias {b} {m1} (n {len(g1)})  not {b} {m0} (n {len(g0)})")
+            for group, g in ((b, g1), (f"not {b}", g0)):
+                stats.append(
+                    {
+                        "region": region,
+                        "label": LABEL[region],
+                        "kind": "group_mean",
+                        "against": group,
+                        "rho": float("nan"),
+                        "p": float("nan"),
+                        "n": len(g),
+                        "mean_bias": round(float(g.mean()), 3) if len(g) else float("nan"),
+                    }
+                )
+    cfg = load_config()
+    pd.DataFrame(stats).to_csv(ROOT / cfg["paths"]["reports"] / "station_bias_stats.csv", index=False)
 
     fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4), sharey=True)
     for ax, col, xl in zip(

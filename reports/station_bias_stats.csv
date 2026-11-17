@@ -1,0 +1,15 @@
+region,label,kind,against,rho,p,n,mean_bias
+bangladesh,Bangladesh region,spearman,lc_built,-0.305,0.063,38,
+bangladesh,Bangladesh region,spearman,land_frac_3x3,0.288,0.079,38,
+bangladesh,Bangladesh region,spearman,elev_diff,0.217,0.192,38,
+bangladesh,Bangladesh region,group_mean,airport,,,0,
+bangladesh,Bangladesh region,group_mean,not airport,,,38,0.114
+bangladesh,Bangladesh region,group_mean,coastal,,,2,-0.58
+bangladesh,Bangladesh region,group_mean,not coastal,,,36,0.153
+uae,UAE region,spearman,lc_built,-0.216,0.459,14,
+uae,UAE region,spearman,land_frac_3x3,0.177,0.544,14,
+uae,UAE region,spearman,elev_diff,0.112,0.703,14,
+uae,UAE region,group_mean,airport,,,7,-0.7
+uae,UAE region,group_mean,not airport,,,7,-0.924
+uae,UAE region,group_mean,coastal,,,4,-0.856
+uae,UAE region,group_mean,not coastal,,,10,-0.794
