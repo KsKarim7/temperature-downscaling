@@ -560,6 +560,62 @@ def test_write_report_writes_the_fixed_table(tmp_path, monkeypatch):
     assert "| --- | --- |" in (tmp_path / "agent_report.md").read_text(encoding="utf-8")
 
 
+def test_write_report_appends_a_provenance_footer(tmp_path, monkeypatch):
+    import datetime
+
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    monkeypatch.setitem(agent.RUN, "model", "gemini-3.1-flash-lite")
+    monkeypatch.setitem(agent.RUN, "provider", "gemini")
+    agent.write_report("### Results\n\nsome text\n")
+    text = (tmp_path / "agent_report.md").read_text(encoding="utf-8")
+    assert "\n---\n" in text
+    assert "model gemini-3.1-flash-lite, provider gemini, run " in text
+    assert datetime.date.today().isoformat() in text
+
+
+def test_stamp_adds_the_guardrail_line(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    monkeypatch.setitem(agent.RUN, "model", "m")
+    monkeypatch.setitem(agent.RUN, "provider", "p")
+    agent.write_report("body\n")
+    agent.stamp(73, 73)
+    lines = (tmp_path / "agent_report.md").read_text(encoding="utf-8").rstrip().splitlines()
+    assert lines[-1] == "guardrail: traced 73 of 73 numbers"
+    assert lines[-3].startswith("model m, provider p, run ")
+
+
+def test_stamp_reports_a_failure_count(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    agent.write_report("body\n")
+    agent.stamp(49, 54)
+    text = (tmp_path / "agent_report.md").read_text(encoding="utf-8")
+    assert "guardrail: traced 49 of 54 numbers" in text
+
+
+def test_stamp_without_a_report_is_harmless(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    agent.stamp(1, 1)
+    assert not (tmp_path / "agent_report.md").exists()
+
+
+def test_footer_survives_the_table_fix(tmp_path, monkeypatch):
+    import downscale.agent as agent
+
+    monkeypatch.setattr(agent, "reports_dir", lambda: tmp_path)
+    agent.write_report("| a | b |\n| 1 | 2 |\n")
+    text = (tmp_path / "agent_report.md").read_text(encoding="utf-8")
+    assert "| --- | --- |" in text
+    assert text.rstrip().endswith(agent.provenance())
+
+
 def test_prompt_never_claims_a_bound():
     from downscale.agent import SYSTEM
 

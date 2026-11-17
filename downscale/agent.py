@@ -1,5 +1,6 @@
 import argparse
 import csv
+import datetime
 import json
 import os
 import re
@@ -248,11 +249,27 @@ def fix_tables(markdown):
     return text + "\n" if markdown.endswith("\n") else text
 
 
+RUN = {"model": "", "provider": ""}
+
+
+def provenance():
+    day = datetime.date.today().isoformat()
+    return f"model {RUN['model']}, provider {RUN['provider']}, run {day}"
+
+
 def write_report(markdown):
-    md = fix_tables(markdown)
+    md = fix_tables(markdown).rstrip() + "\n\n---\n\n" + provenance() + "\n"
     p = reports_dir() / "agent_report.md"
     p.write_text(md, encoding="utf-8")
     return {"written": f"{p.parent.name}/{p.name}", "words": len(md.split())}
+
+
+def stamp(traced, total):
+    p = reports_dir() / "agent_report.md"
+    if not p.exists():
+        return
+    body = p.read_text(encoding="utf-8").rstrip()
+    p.write_text(f"{body}\n\nguardrail: traced {traced} of {total} numbers\n", encoding="utf-8")
 
 
 TOOLS = [
@@ -540,6 +557,8 @@ def probe(provider):
 def run(provider, turns):
     client, c = client_for(provider)
     model = pick_model(client, c)
+    RUN["model"] = model
+    RUN["provider"] = provider
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": "Do the review."}]
     seen = []
     done = {}
@@ -574,6 +593,7 @@ def run(provider, turns):
     if not report_text:
         raise SystemExit("the model stopped without writing a report")
     traced, untraced, misused = guardrail(report_text, seen)
+    stamp(len(traced), len(traced) + len(untraced))
     print(f"traced {len(traced)} of {len(traced) + len(untraced)} numbers")
     if untraced:
         print("untraced numbers in the report: " + ", ".join(untraced))
