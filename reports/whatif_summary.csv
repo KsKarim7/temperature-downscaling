@@ -1,0 +1,9 @@
+region,label,month,group,n_cells,mean_delta_c,min_hourly_delta_c,max_hourly_delta_c
+bangladesh,Bangladesh region,january,built,39,0.0619,0.014,0.1373
+bangladesh,Bangladesh region,january,placebo,2117,0.092,-0.1145,0.1779
+bangladesh,Bangladesh region,july,built,39,-0.0449,-0.0847,0.0025
+bangladesh,Bangladesh region,july,placebo,2117,0.043,-0.0416,0.1124
+uae,UAE region,january,built,51,0.0655,-0.0118,0.0996
+uae,UAE region,january,placebo,1172,0.0669,-0.2233,0.3748
+uae,UAE region,july,built,51,-0.0154,-0.1214,0.0554
+uae,UAE region,july,placebo,1172,-0.2602,-0.6636,0.0703
